@@ -1,5 +1,5 @@
 -- ==================== THEME EDITOR MODULE ====================
--- Loaded from GitHub: Custom theme creation and management system
+-- Loaded from GitHub: Custom theme creation and management systxem
 -- Requirements: WindUI, global variables from main script
 -- ==============================================================
 
@@ -54,14 +54,17 @@ local ThemeEditor = {
         PopupIcon = Color3.fromHex("#E89DC8")
     },
     -- Background Image Settings
-    BackgroundImage = "rbxassetid://https://i.pinimg.com/1200x/ef/6c/bc/ef6cbcc329b3e56b0346c8c4e568882d.jpg",
+    BackgroundImage = "rbxassetid://127375677813832",
     BackgroundImageTransparency = 0.5,
     -- Lưu references đến colorpickers để update sau
     ColorpickerRefs = {},
     InputRefs = {},
     SliderRefs = {},
-    -- Config file riêng (không lưu qua ConfigSystem chung)
-    ConfigFile = "AnyaHub_ThemeConfig_" .. c.Name .. ".txt"
+    DropdownRefs = {},
+    -- Config folder và file riêng (không lưu qua ConfigSystem chung)
+    ConfigFolder = "AnyaHub_Themes",
+    ConfigFile = "AnyaHub_ThemeConfig_" .. c.Name .. ".txt",
+    CurrentThemeName = "Pastel Pink"
 }
 
 -- ==================== UTILITY FUNCTIONS ====================
