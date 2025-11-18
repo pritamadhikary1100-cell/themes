@@ -1,6 +1,6 @@
 -- ==================== THEME EDITOR MODULE ====================
 -- Loaded from GitHub: Custom theme creation and management system
--- Requirements: WindUI, global variables from main script
+-- Requirements: WindUI, global variables from main scriptc
 -- ==============================================================
 
 local Module = {}
@@ -63,7 +63,10 @@ local ThemeEditor = {
     -- Config folder và file riêng (không lưu qua ConfigSystem chung)
     ConfigFolder = "AnyaHub_Themes",
     ConfigFile = "",  -- Sẽ set trong Init()
-    CurrentThemeName = "Pastel Pink"
+    CurrentThemeName = "Pastel Pink",
+    -- Autoload settings
+    autoloadTheme = "",
+    autoloadDropdownRef = nil
 }
 
 -- ==================== UTILITY FUNCTIONS ====================
@@ -620,6 +623,12 @@ local function createThemeEditorTab()
     
     ThemeTab:Divider({ Text = "Quản Lý Theme" })
     
+    -- Paragraph hiển thị autoload theme
+    local AutoloadThemeParagraph = ThemeTab:Paragraph({
+        Title = "🚀 Current Autoload Theme",
+        Description = "None"
+    })
+    
     -- Paragraph hướng dẫn
     ThemeTab:Paragraph({
         Title = "ℹ️ Cách Sử dụng",
@@ -652,6 +661,36 @@ local function createThemeEditorTab()
         end
     })
     ThemeEditor.DropdownRefs.ThemeList = themeDropdown
+    
+    -- Dropdown chọn autoload theme
+    ThemeEditor.autoloadDropdownRef = ThemeTab:Dropdown({
+        Title = "🚀 Select Autoload Theme",
+        Description = "Theme này sẽ tự động load khi script khởi động",
+        Values = ThemeEditor:GetThemeList(),
+        Multi = false,
+        Callback = function(selected)
+            if selected and selected ~= "" then
+                ThemeEditor.autoloadTheme = selected
+                AutoloadThemeParagraph:SetDesc("🚀 " .. selected)
+                
+                -- Lưu vào file _autoload.txt
+                local autoloadFile = ThemeEditor.ConfigFolder .. "/_autoload.txt"
+                if makefolder and not isfolder(ThemeEditor.ConfigFolder) then
+                    makefolder(ThemeEditor.ConfigFolder)
+                end
+                
+                local success = pcall(function()
+                    writefile(autoloadFile, selected)
+                end)
+                
+                if success then
+                    libNoti("✅ Theme '" .. selected .. "' sẽ tự động load khi khởi động!", 4)
+                else
+                    libNoti("❌ Không thể lưu autoload setting!", 3)
+                end
+            end
+        end
+    })
     
     -- Hàng button 1
     ThemeTab:Button({
@@ -1017,6 +1056,19 @@ local function createThemeEditorTab()
         end
     })
     
+    -- Load autoload theme setting từ file
+    local autoloadFile = ThemeEditor.ConfigFolder .. "/_autoload.txt"
+    if isfile and isfile(autoloadFile) then
+        local success, autoloadThemeName = pcall(function()
+            return readfile(autoloadFile)
+        end)
+        if success and autoloadThemeName and autoloadThemeName ~= "" then
+            ThemeEditor.autoloadTheme = autoloadThemeName
+            AutoloadThemeParagraph:SetDesc("🚀 " .. autoloadThemeName)
+            print("[ThemeEditor] Autoload theme set to: " .. autoloadThemeName)
+        end
+    end
+    
     -- Load theme khi khởi động tab
     task.spawn(function()
         task.wait(0.5)
@@ -1043,6 +1095,32 @@ function Module:Init()
     
     -- Tạo tab UI
     createThemeEditorTab()
+    
+    -- ✅ AUTO-LOAD THEME
+    task.spawn(function()
+        task.wait(1)  -- Đợi UI load xong
+        
+        local autoloadFile = ThemeEditor.ConfigFolder .. "/_autoload.txt"
+        if isfile and isfile(autoloadFile) then
+            local success, themeToLoad = pcall(function()
+                return readfile(autoloadFile)
+            end)
+            
+            if success and themeToLoad and themeToLoad ~= "" then
+                print("[ThemeEditor] Auto-loading theme: " .. themeToLoad)
+                
+                -- Load theme
+                if ThemeEditor:LoadThemeByName(themeToLoad) then
+                    libNoti("🎨 Auto-loaded theme: " .. themeToLoad, 4)
+                    print("[ThemeEditor] Auto-load successful!")
+                else
+                    print("[ThemeEditor] Auto-load failed for: " .. themeToLoad)
+                end
+            end
+        else
+            print("[ThemeEditor] No autoload theme file found")
+        end
+    end)
 end
 
 return Module
