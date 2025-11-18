@@ -1,6 +1,6 @@
 -- ==================== THEME EDITOR MODULE ====================
 -- Loaded from GitHub: Custom theme creation and management system
--- Requirements: WindUI, global variables from main scriptccccccccccccc
+-- Requirements: WindUI, global variables from main script
 -- ==============================================================
 
 local Module = {}
@@ -191,7 +191,7 @@ function ThemeEditor:SaveThemeAs(themeName)
 end
 
 function ThemeEditor:LoadThemeByName(themeName)
-    if themeName == "Default" then
+    if not themeName or themeName == "" or themeName == "Default" then
         self:ResetToDefault()
         return true
     end
@@ -272,16 +272,20 @@ end
 function ThemeEditor:RefreshThemeDropdown()
     local themes = self:GetThemeList()
     
-    if self.DropdownRefs.ThemeList and self.DropdownRefs.ThemeList.SetValues then
-        pcall(function()
-            self.DropdownRefs.ThemeList:SetValues(themes)
-        end)
+    if self.DropdownRefs.ThemeList then
+        if self.DropdownRefs.ThemeList.SetValues then
+            pcall(function()
+                self.DropdownRefs.ThemeList:SetValues(themes)
+            end)
+        end
     end
     
-    if self.autoloadDropdownRef and self.autoloadDropdownRef.SetValues then
-        pcall(function()
-            self.autoloadDropdownRef:SetValues(themes)
-        end)
+    if self.autoloadDropdownRef then
+        if self.autoloadDropdownRef.SetValues then
+            pcall(function()
+                self.autoloadDropdownRef:SetValues(themes)
+            end)
+        end
     end
     
     return themes
