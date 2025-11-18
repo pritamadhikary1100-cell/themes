@@ -1,6 +1,6 @@
 -- ==================== THEME EDITOR MODULE ====================
 -- Loaded from GitHub: Custom theme creation and management system
--- Requirements: WindUI, global variables from main scriptds
+-- Requirements: WindUI, global variables from main scriptxxxxxxxx
 -- ==============================================================
 
 local Module = {}
@@ -598,13 +598,18 @@ local function createThemeEditorTab()
         Description = "• Nhập tên theme MỚI hoặc chọn từ dropdown\n• Lưu: Lưu theme hiện tại\n• Load: Tải theme đã chọn\n• Xóa: Xóa theme đã chọn\n• Áp Dụng: Xem trước ngay lập tức"
     })
     
+    -- Biến lưu tên theme và theme đã chọn
+    local newThemeName = ""
+    local selectedTheme = "Default"
+    
     -- Input để nhập tên theme mới
-    local themeNameInput = ThemeTab:Input({
+    ThemeTab:Input({
         Title = "Tên Theme Mới",
         Description = "Nhập tên để lưu theme mới",
         Placeholder = "VD: MyTheme",
+        Value = "",
         Callback = function(value)
-            -- Không cần xử lý gì, chỉ lưu value
+            newThemeName = value
         end
     })
     
@@ -613,9 +618,9 @@ local function createThemeEditorTab()
         Title = "Chọn Theme Đã Lưu",
         Description = "Chọn theme để load hoặc xóa",
         Values = ThemeEditor:GetThemeList(),
-        Default = "Default",
+        Multi = false,
         Callback = function(value)
-            -- Không cần xử lý gì, chỉ lưu selection
+            selectedTheme = value
         end
     })
     ThemeEditor.DropdownRefs.ThemeList = themeDropdown
@@ -625,10 +630,9 @@ local function createThemeEditorTab()
         Title = "💾 Lưu Theme",
         Description = "Lưu theme với tên đã nhập",
         Callback = function()
-            local themeName = themeNameInput:GetValue()
-            if themeName and themeName ~= "" then
-                ThemeEditor:SaveThemeAs(themeName)
-                themeNameInput:SetValue("")  -- Clear input sau khi lưu
+            if newThemeName and newThemeName ~= "" then
+                ThemeEditor:SaveThemeAs(newThemeName)
+                newThemeName = ""  -- Clear sau khi lưu
             else
                 libNoti("❌ Vui lòng nhập tên theme!", 3)
             end
@@ -639,8 +643,7 @@ local function createThemeEditorTab()
         Title = "📂 Load Theme",
         Description = "Tải theme đã chọn từ dropdown",
         Callback = function()
-            local selectedTheme = themeDropdown:GetValue()
-            if selectedTheme then
+            if selectedTheme and selectedTheme ~= "" then
                 ThemeEditor:LoadThemeByName(selectedTheme)
             else
                 libNoti("❌ Vui lòng chọn theme từ dropdown!", 3)
@@ -652,8 +655,7 @@ local function createThemeEditorTab()
         Title = "🗑️ Xóa Theme",
         Description = "Xóa theme đã chọn",
         Callback = function()
-            local selectedTheme = themeDropdown:GetValue()
-            if selectedTheme then
+            if selectedTheme and selectedTheme ~= "" then
                 ThemeEditor:DeleteTheme(selectedTheme)
             else
                 libNoti("❌ Vui lòng chọn theme từ dropdown!", 3)
@@ -738,61 +740,6 @@ local function createThemeEditorTab()
             end
         end
     })
-    
-    -- Preset Background Images
-    ThemeTab:Paragraph({
-        Title = "📸 Background Presets",
-        Description = "Nhấn vào để áp dụng hình nền có sẵn"
-    })
-    
-    ThemeTab:Button({
-        Title = "🌸 Cherry Blossom (Default)",
-        Description = "Hình nền hoa anh đào mặc định",
-        Callback = function()
-            ThemeEditor.BackgroundImage = "rbxassetid://127375677813832"
-            ThemeEditor.BackgroundImageTransparency = 0.5
-            ThemeEditor:ApplyBackgroundImage()
-            ThemeEditor:UpdateAllUI()
-            libNoti("✅ Đã áp dụng hình nền Cherry Blossom!", 2)
-        end
-    })
-    
-    ThemeTab:Button({
-        Title = "🌌 Space Galaxy",
-        Description = "Hình nền thiên hà",
-        Callback = function()
-            ThemeEditor.BackgroundImage = "rbxassetid://6072933674"
-            ThemeEditor.BackgroundImageTransparency = 0.3
-            ThemeEditor:ApplyBackgroundImage()
-            ThemeEditor:UpdateAllUI()
-            libNoti("✅ Đã áp dụng hình nền Galaxy!", 2)
-        end
-    })
-    
-    ThemeTab:Button({
-        Title = "🌊 Ocean Waves",
-        Description = "Hình nền sóng biển",
-        Callback = function()
-            ThemeEditor.BackgroundImage = "rbxassetid://6072952009"
-            ThemeEditor.BackgroundImageTransparency = 0.4
-            ThemeEditor:ApplyBackgroundImage()
-            ThemeEditor:UpdateAllUI()
-            libNoti("✅ Đã áp dụng hình nền Ocean!", 2)
-        end
-    })
-    
-    ThemeTab:Button({
-        Title = "🌲 Forest",
-        Description = "Hình nền rừng cây",
-        Callback = function()
-            ThemeEditor.BackgroundImage = "rbxassetid://6072945256"
-            ThemeEditor.BackgroundImageTransparency = 0.35
-            ThemeEditor:ApplyBackgroundImage()
-            ThemeEditor:UpdateAllUI()
-            libNoti("✅ Đã áp dụng hình nền Forest!", 2)
-        end
-    })
-    
     ThemeTab:Button({
         Title = "❌ Xóa Hình Nền",
         Description = "Tắt hình nền (chỉ dùng màu)",
