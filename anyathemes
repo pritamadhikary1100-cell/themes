@@ -1,5 +1,5 @@
 -- ==================== THEME EDITOR MODULE ====================
--- Loaded from GitHub: Custom theme creation and management systemd
+-- Loaded from GitHub: Custom theme creation and management system
 -- Requirements: WindUI, global variables from main script
 -- ==============================================================
 
@@ -54,17 +54,13 @@ local ThemeEditor = {
         PopupIcon = Color3.fromHex("#E89DC8")
     },
     -- Background Image Settings
-    BackgroundImage = "https://i.pinimg.com/1200x/ef/6c/bc/ef6cbcc329b3e56b0346c8c4e568882d.jpg",
+    BackgroundImage = "rbxassetid://https://i.pinimg.com/1200x/ef/6c/bc/ef6cbcc329b3e56b0346c8c4e568882d.jpg",
     BackgroundImageTransparency = 0.5,
     -- Lưu references đến colorpickers để update sau
     ColorpickerRefs = {},
     InputRefs = {},
     SliderRefs = {},
-    DropdownRefs = {},
-    -- Config folder và file
-    ConfigFolder = "AnyaHub_Themes",
-    CurrentThemeName = "Default",  -- Tên theme hiện tại
-    -- Deprecated: ConfigFile cũ (để migration)
+    -- Config file riêng (không lưu qua ConfigSystem chung)
     ConfigFile = "AnyaHub_ThemeConfig_" .. c.Name .. ".txt"
 }
 
@@ -244,6 +240,44 @@ function ThemeEditor:RefreshThemeDropdown()
     return themes
 end
 
+-- Hàm migrate config cũ sang hệ thống mới (deprecated)
+function ThemeEditor:MigrateOldConfig()
+    if not (isfile and readfile and isfile(self.ConfigFile)) then
+        return false
+    end
+    
+    local success = pcall(function()
+        local themeData = readfile(self.ConfigFile)
+        local loadedData = e:JSONDecode(themeData)
+        
+        if loadedData then
+            -- Migrate sang theme "MyTheme"
+            self.CurrentTheme = loadedData.CurrentTheme or self.CurrentTheme
+            self.BackgroundImage = loadedData.BackgroundImage or self.BackgroundImage
+            self.BackgroundImageTransparency = loadedData.BackgroundImageTransparency or self.BackgroundImageTransparency
+            
+            -- Lưu vào hệ thống mới
+            self:SaveThemeAs("MyTheme")
+            
+            -- Xóa file cũ
+            if delfile then
+                delfile(self.ConfigFile)
+            end
+            
+            libNoti("✅ Đã chuyển theme cũ sang 'MyTheme'!", 3)
+            return true
+        end
+    end)
+    
+    return success
+end
+
+-- Hàm lưu theme vào file cũ (deprecated - giữ để backward compatibility)
+function ThemeEditor:SaveTheme()
+    -- Redirect sang SaveThemeAs với tên hiện tại
+    return self:SaveThemeAs(self.CurrentThemeName or "MyTheme")
+end
+
 -- Hàm load theme từ file (riêng biệt, không qua ConfigSystem)
 function ThemeEditor:LoadTheme()
     if not (isfile and readfile and isfile(self.ConfigFile)) then
@@ -275,7 +309,25 @@ function ThemeEditor:LoadTheme()
     end)
     
     if success then
-       áp dụng background image
+        libNoti("✅ Theme đã được tải!", 3)
+    else
+        libNoti("❌ Không thể tải theme!", 3)
+    end
+    
+    return success
+end
+
+-- Hàm áp dụng theme hiện tại
+function ThemeEditor:ApplyTheme()
+    local success = pcall(function()
+        WindUI:AddTheme(self.CurrentTheme)
+        WindUI:SetTheme(self.CurrentTheme.Name)
+    end)
+    
+    return success
+end
+
+-- Hàm áp dụng background image
 function ThemeEditor:ApplyBackgroundImage()
     local success = pcall(function()
         if Window and Window.SetBackgroundImage then
@@ -654,107 +706,36 @@ local function createThemeEditorTab()
         end
     })
     
-    ThemeTab:Divider({ Text = "Quản Lý Theme" })
-    
-    ThemeTab:Paragraph({
-        Title = "💾 Quản Lý Theme Đã Lưu",
-        Description = "Lưu, tải và xóa các theme tùy chỉnh của bạn"
-    })
-    
-    -- Input tên theme mới
-    local themeNameInput = ThemeTab:Input({
-        Title = "Tên Theme Mới",
-        Description = "Nhập tên cho theme hiện tại",
-        Placeholder = "MyCustomTheme",
-        Value = ThemeEditor.CurrentThemeName,
-        Callback = function(value)
-            -- Chỉ cập nhật giá trị, không lưu ngay
-        end
-    })
-    ThemeEditor.InputRefs.ThemeName = themeNameInput
-    
-    -- Dropdown chọn theme đã lưu
-    local themeDropdown = ThemeTab:Dropdown({
-        Title = "📋 Chọn Theme Đã Lưu",
-        Description = "Chọn theme để tải hoặc xóa",
-        Values = ThemeEditor:GetThemeList(),
-        Multi = false,
-        Callback = function(selected)
-            -- Không load ngay, chỉ cập nhật selection
-        end
-    })
-    ThemeEditor.DropdownRefs.ThemeList = themeDropdown
-    
-    -- Button Lưu Theme Mới
-    ThemeTab:Button({
-        Title = "💾 Lưu Theme Mới",
-        Description = "Lưu theme hiện tại với tên đã nhập",
-        Callback = function()
-            local themeName = themeNameInput.Value or ""
-            if themeName == "" then
-                libNoti("❌ Vui lòng nhập tên theme!", 3)
-                return
-            end
-            ThemeEditor:SaveThemeAs(themeName)
-        end
-    })
-    
-    -- Button Load Theme Đã Chọn
-    ThemeTab:Button({
-        Title = "📂 Tải Theme Đã Chọn",
-        Description = "Tải theme từ dropdown",
-        Callback = function()
-            local selected = themeDropdown.Value
-            if selected and #selected > 0 then
-                local themeName = selected[1] or selected
-                ThemeEditor:LoadThemeByName(themeName)
-            else
-                libNoti("❌ Vui lòng chọn theme!", 3)
-            end
-        end
-    })
-    
-    -- Button Xóa Theme Đã Chọn
-    ThemeTab:Button({
-        Title = "🗑️ Xóa Theme Đã Chọn",
-        Description = "Xóa theme đã chọn (không xóa được Default)",
-        Callback = function()
-            local selected = themeDropdown.Value
-            if selected and #selected > 0 then
-                local themeName = selected[1] or selected
-                if themeName == "Default" then
-                    libNoti("❌ Không thể xóa theme Default!", 3)
-                    return
-                end
-                ThemeEditor:DeleteTheme(themeName)
-            else
-                libNoti("❌ Vui lòng chọn theme!", 3)
-            end
-        end
-    })
-    
-    -- Button Refresh Danh Sách
-    ThemeTab:Button({
-        Title = "🔄 Làm Mới Danh Sách",
-        Description = "Cập nhật danh sách theme",
-        Callback = function()
-            local themes = ThemeEditor:RefreshThemeDropdown()
-            libNoti("✅ Tìm thấy " .. #themes .. " theme!", 2)
-        end
-    })
-    
-    ThemeTab:Divider({ Text = "Điều Khiển Nhanh" })
+    ThemeTab:Divider({ Text = "Điều Khiển" })
     
     -- Button Áp Dụng
     ThemeTab:Button({
-        Title = "✨ Áp Dụng Theme Hiện Tại",
-        Description = "Áp dụng màu sắc và hình nền hiện tại",
+        Title = "✨ Áp Dụng Theme",
+        Description = "Áp dụng theme hiện tại",
         Callback = function()
-            if ThemeEditor:ApplyTheme() and ThemeEditor:ApplyBackgroundImage() then
+            if ThemeEditor:ApplyTheme() then
                 libNoti("✅ Theme đã được áp dụng!", 2)
             else
                 libNoti("❌ Không thể áp dụng theme!", 3)
             end
+        end
+    })
+    
+    -- Button Lưu
+    ThemeTab:Button({
+        Title = "💾 Lưu Theme",
+        Description = "Lưu theme hiện tại vào file",
+        Callback = function()
+            ThemeEditor:SaveTheme()
+        end
+    })
+    
+    -- Button Load
+    ThemeTab:Button({
+        Title = "📂 Tải Theme Đã Lưu",
+        Description = "Tải theme từ file đã lưu",
+        Callback = function()
+            ThemeEditor:LoadTheme()
         end
     })
     
@@ -1025,12 +1006,6 @@ function Module:Init()
     
     -- Tạo tab UI
     createThemeEditorTab()
-end
-
-return Module
-    
-    -- Load theme khi khởi động
-    ThemeEditor:LoadTheme()
 end
 
 return Module
