@@ -1,6 +1,6 @@
 -- ==================== THEME EDITOR MODULE ====================
--- Loaded from GitHub: Custom theme creation and management system
--- Requirements: WindUI, global variables from main scriptdddddd
+-- Loaded from GitHub: Custom theme creation and management systemssssssssss
+-- Requirements: WindUI, global variables from main script
 -- ==============================================================
 
 local Module = {}
@@ -110,10 +110,10 @@ end
 -- ==================== THEME FUNCTIONS ====================
 function ThemeEditor:GetThemeList()
     if not (isfolder and listfiles) then 
-        return {"Default"} 
+        return {"None", "Default"} 
     end
     
-    local themes = {"Default"}
+    local themes = {"None", "Default"}
     
     if not isfolder(self.ConfigFolder) then
         if makefolder then
@@ -191,7 +191,11 @@ function ThemeEditor:SaveThemeAs(themeName)
 end
 
 function ThemeEditor:LoadThemeByName(themeName)
-    if not themeName or themeName == "" or themeName == "Default" then
+    if not themeName or themeName == "" or themeName == "None" then
+        return true
+    end
+    
+    if themeName == "Default" then
         self:ResetToDefault()
         return true
     end
@@ -235,7 +239,7 @@ function ThemeEditor:LoadThemeByName(themeName)
 end
 
 function ThemeEditor:DeleteTheme(themeName)
-    if themeName == "Default" then
+    if themeName == "Default" or themeName == "None" then
         libNoti("❌ Cannot delete default theme!", 3)
         return false
     end
@@ -998,13 +1002,9 @@ local function createThemeEditorTab()
         Description = "None"
     })
     
-    ThemeTab:Paragraph({
-        Title = "ℹ️ How to Use",
-        Description = "• Enter NEW theme name or select from dropdown\n• Save: Save current theme\n• Load: Load selected theme\n• Delete: Delete selected theme\n• Apply: Preview changes instantly"
-    })
     
     local newThemeName = ""
-    local selectedTheme = "Default"
+    local selectedTheme = "None"
     
     ThemeTab:Input({
         Title = "New Theme Name",
@@ -1120,6 +1120,11 @@ local function createThemeEditorTab()
     
     ThemeTab:Divider({ Text = "Background Image" })
     
+    ThemeTab:Paragraph({
+        Title = "ℹ️ How to Get Background Image ID",
+        Description = "1. Go to Roblox.com → Library/Catalog\n2. Find an image you like\n3. Copy the number from URL (e.g., 127375677813832)\n4. Enter: rbxassetid://[number]\n\nExample: rbxassetid://127375677813832"
+    })
+    
     local bgImageInput = ThemeTab:Input({
         Title = "Background Image Asset ID",
         Description = "Enter background image Asset ID (rbxassetid://...)",
@@ -1206,23 +1211,23 @@ function Module:Init()
         ThemeEditor:MigrateOldConfig()
     end)
     
-    createThemeEditorTab()
-    
-    task.spawn(function()
-        task.wait(1)
+    -- ✅ LOAD AUTOLOAD THEME BEFORE CREATING UI TO PREVENT DEFAULT FLASH
+    local autoloadFile = ThemeEditor.ConfigFolder .. "/_autoload.txt"
+    if isfile and isfile(autoloadFile) then
+        local success, themeToLoad = pcall(function()
+            return readfile(autoloadFile)
+        end)
         
-        local autoloadFile = ThemeEditor.ConfigFolder .. "/_autoload.txt"
-        if isfile and isfile(autoloadFile) then
-            local success, themeToLoad = pcall(function()
-                return readfile(autoloadFile)
-            end)
-            
-            if success and themeToLoad and themeToLoad ~= "" then
-                if ThemeEditor:LoadThemeByName(themeToLoad) then
-                end
+        if success and themeToLoad and themeToLoad ~= "" then
+            task.wait(0.5)
+            if ThemeEditor:LoadThemeByName(themeToLoad) then
+                libNoti("🎨 Auto-loaded theme: " .. themeToLoad, 4)
             end
         end
-    end)
+    end
+    
+    task.wait(0.1)
+    createThemeEditorTab()
 end
 
 return Module
