@@ -1,6 +1,6 @@
 -- ==================== THEME EDITOR MODULE ====================
 -- Loaded from GitHub: Custom theme creation and management system
--- Requirements: WindUI, global variables from main scriptxxxxxxxx
+-- Requirements: WindUI, global variables from main script
 -- ==============================================================
 
 local Module = {}
@@ -78,7 +78,10 @@ end
 -- ==================== THEME FUNCTIONS ====================
 -- Hàm lấy danh sách theme đã lưu
 function ThemeEditor:GetThemeList()
-    if not (isfolder and listfiles) then return {"Default"} end
+    if not (isfolder and listfiles) then 
+        print("[ThemeEditor] isfolder hoặc listfiles không khả dụng")
+        return {"Default"} 
+    end
     
     local themes = {"Default"}  -- Theme mặc định luôn có
     
@@ -86,6 +89,7 @@ function ThemeEditor:GetThemeList()
     if not isfolder(self.ConfigFolder) then
         if makefolder then
             makefolder(self.ConfigFolder)
+            print("[ThemeEditor] Created folder in GetThemeList: " .. self.ConfigFolder)
         end
         return themes
     end
@@ -96,15 +100,21 @@ function ThemeEditor:GetThemeList()
     end)
     
     if success and files then
+        print("[ThemeEditor] Found " .. #files .. " files in folder")
         for _, filePath in ipairs(files) do
+            print("[ThemeEditor] File: " .. filePath)
             local fileName = filePath:match("([^/\\]+)%.json$")
             if fileName and fileName ~= "Default" then
+                print("[ThemeEditor] Adding theme: " .. fileName)
                 table.insert(themes, fileName)
             end
         end
+    else
+        print("[ThemeEditor] Không thể list files")
     end
     
     table.sort(themes)
+    print("[ThemeEditor] Total themes: " .. #themes)
     return themes
 end
 
@@ -115,14 +125,13 @@ function ThemeEditor:SaveThemeAs(themeName)
         return false 
     end
     
-    -- Tạo folder nếu chưa tồn tại
-    if not isfolder(self.ConfigFolder) then
-        if makefolder then
+    local success, errorMsg = pcall(function()
+        -- Tạo folder nếu chưa tồn tại
+        if makefolder and not isfolder(self.ConfigFolder) then
             makefolder(self.ConfigFolder)
+            print("[ThemeEditor] Created folder: " .. self.ConfigFolder)
         end
-    end
-    
-    local success = pcall(function()
+        
         -- Cập nhật tên theme
         self.CurrentTheme.Name = themeName
         self.CurrentThemeName = themeName
@@ -134,14 +143,20 @@ function ThemeEditor:SaveThemeAs(themeName)
         }
         local themeData = HttpService:JSONEncode(saveData)
         local filePath = self.ConfigFolder .. "/" .. themeName .. ".json"
+        
+        print("[ThemeEditor] Saving to: " .. filePath)
         writefile(filePath, themeData)
+        print("[ThemeEditor] Save successful!")
     end)
     
     if success then
         libNoti("✅ Theme '" .. themeName .. "' đã được lưu!", 3)
+        -- Delay nhỏ để file system kịp cập nhật
+        task.wait(0.2)
         self:RefreshThemeDropdown()
     else
-        libNoti("❌ Không thể lưu theme!", 3)
+        print("[ThemeEditor] Save error: " .. tostring(errorMsg))
+        libNoti("❌ Không thể lưu theme! Lỗi: " .. tostring(errorMsg), 5)
     end
     
     return success
@@ -231,12 +246,25 @@ end
 
 -- Hàm refresh dropdown
 function ThemeEditor:RefreshThemeDropdown()
+    print("[ThemeEditor] RefreshThemeDropdown called")
     local themes = self:GetThemeList()
     
-    if self.DropdownRefs.ThemeList and self.DropdownRefs.ThemeList.SetValues then
-        pcall(function()
-            self.DropdownRefs.ThemeList:SetValues(themes)
-        end)
+    if self.DropdownRefs.ThemeList then
+        if self.DropdownRefs.ThemeList.SetValues then
+            local success = pcall(function()
+                print("[ThemeEditor] Updating dropdown with " .. #themes .. " themes")
+                self.DropdownRefs.ThemeList:SetValues(themes)
+            end)
+            if success then
+                print("[ThemeEditor] Dropdown updated successfully")
+            else
+                print("[ThemeEditor] Failed to update dropdown")
+            end
+        else
+            print("[ThemeEditor] Dropdown không có SetValues method")
+        end
+    else
+        print("[ThemeEditor] DropdownRefs.ThemeList không tồn tại")
     end
     
     return themes
