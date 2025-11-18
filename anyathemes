@@ -1,6 +1,6 @@
 -- ==================== THEME EDITOR MODULE ====================
 -- Loaded from GitHub: Custom theme creation and management system
--- Requirements: WindUI, global variables from main script
+-- Requirements: WindUI, global variables from main scriptdddddd
 -- ==============================================================
 
 local Module = {}
@@ -650,7 +650,6 @@ function ThemeEditor:ResetToDefault()
     self:ApplyTheme()
     self:ApplyBackgroundImage()
     self:UpdateAllUI()
-    libNoti("✅ Reset to Pastel Pink theme!", 3)
 end
 
 -- Hàm cập nhật tất cả UI elements sau khi load
@@ -707,10 +706,7 @@ local function createThemeEditorTab()
     
     ThemeTab:Section({ Title = "🎨 Theme Editor" })
     
-    ThemeTab:Paragraph({
-        Title = "ℹ️ Instructions",
-        Description = "• Customize colors for each component\n• Apply to preview changes\n• Save theme to reuse later\n• Load to restore saved themes"
-    })
+
     
     ThemeTab:Divider({ Text = "🎨 Basic Colors" })
     
@@ -1177,10 +1173,6 @@ local function createThemeEditorTab()
     
     ThemeTab:Divider({ Text = "Preset Themes" })
     
-    ThemeTab:Paragraph({
-        Title = "📦 Available Themes",
-        Description = "5 preset themes auto-generated:\n• Dark Mode\n• Light Mode\n• Cyberpunk\n• Forest\n• Ocean\n\nSelect from dropdown above to load or set autoload."
-    })
     
     local autoloadFile = ThemeEditor.ConfigFolder .. "/_autoload.txt"
     if isfile and isfile(autoloadFile) then
