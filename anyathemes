@@ -1,6 +1,6 @@
 -- ==================== THEME EDITOR MODULE ====================
 -- Loaded from GitHub: Custom theme creation and management system
--- Requirements: WindUI, global variables from main scriptxzxcz
+-- Requirements: WindUI, global variables from main script
 -- ==============================================================
 
 local Module = {}
@@ -185,49 +185,71 @@ end
 
 -- Hàm load theme từ tên
 function ThemeEditor:LoadThemeByName(themeName)
+    print("[ThemeEditor] LoadThemeByName called with: " .. tostring(themeName))
+    
     if themeName == "Default" then
+        print("[ThemeEditor] Loading Default theme")
         self:ResetToDefault()
         return true
     end
     
-    if not (readfile and isfile) then return false end
+    if not (readfile and isfile) then 
+        print("[ThemeEditor] readfile or isfile not available")
+        return false 
+    end
     
     local filePath = self.ConfigFolder .. "/" .. themeName .. ".json"
+    print("[ThemeEditor] Checking file: " .. filePath)
     
     if not isfile(filePath) then
-        libNoti("❌ Theme không tồn tại!", 3)
+        print("[ThemeEditor] File does not exist: " .. filePath)
+        libNoti("❌ Theme không tồn tại: " .. themeName, 3)
         return false
     end
     
-    local success = pcall(function()
+    print("[ThemeEditor] File exists, attempting to load...")
+    
+    local success, errorMsg = pcall(function()
         local themeData = readfile(filePath)
+        print("[ThemeEditor] File read successfully, length: " .. #themeData)
+        
         local loadedData = HttpService:JSONDecode(themeData)
+        print("[ThemeEditor] JSON decoded successfully")
         
         if loadedData then
             -- Load theme colors
             if loadedData.CurrentTheme then
                 self.CurrentTheme = loadedData.CurrentTheme
+                print("[ThemeEditor] Theme colors loaded")
             end
             
             -- Load background settings
             if loadedData.BackgroundImage then
                 self.BackgroundImage = loadedData.BackgroundImage
+                print("[ThemeEditor] Background image loaded")
             end
             if loadedData.BackgroundImageTransparency ~= nil then
                 self.BackgroundImageTransparency = loadedData.BackgroundImageTransparency
+                print("[ThemeEditor] Background transparency loaded")
             end
             
             self.CurrentThemeName = themeName
+            print("[ThemeEditor] Applying theme...")
             self:ApplyTheme()
             self:ApplyBackgroundImage()
             self:UpdateAllUI()
+            print("[ThemeEditor] Theme applied successfully")
+        else
+            print("[ThemeEditor] loadedData is nil")
         end
     end)
     
     if success then
         libNoti("✅ Theme '" .. themeName .. "' đã được tải!", 3)
+        print("[ThemeEditor] Load successful!")
     else
-        libNoti("❌ Không thể tải theme!", 3)
+        print("[ThemeEditor] Load error: " .. tostring(errorMsg))
+        libNoti("❌ Không thể tải theme! Lỗi: " .. tostring(errorMsg), 5)
     end
     
     return success
