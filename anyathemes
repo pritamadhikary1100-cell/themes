@@ -1,6 +1,6 @@
 -- ==================== THEME EDITOR MODULE ====================
--- Loaded from GitHub: Custom theme creation and management systemddddddd
--- Requirements: WindUI, global variables from main script
+-- Loaded from GitHub: Custom theme creation and management system
+-- Requirements: WindUI, global variables from main scriptxxxxxxxxxxxxxxxxx
 -- ==============================================================
 
 local Module = {}
@@ -608,19 +608,29 @@ function ThemeEditor:ApplyTheme()
     local success, errorMsg = pcall(function()
         print("[ThemeEditor] Applying theme: " .. tostring(self.CurrentTheme.Name))
         
-        -- Xóa theme cũ nếu tồn tại
+        -- Tạo tên theme duy nhất để tránh conflict
+        local uniqueName = "CustomTheme_" .. tick()
+        self.CurrentTheme.Name = uniqueName
+        
+        -- Xóa tất cả theme custom cũ
         pcall(function()
-            WindUI:RemoveTheme(self.CurrentTheme.Name)
+            for i = 1, 10 do
+                WindUI:RemoveTheme("CustomTheme_" .. i)
+            end
         end)
         
         -- Thêm theme mới
         WindUI:AddTheme(self.CurrentTheme)
-        print("[ThemeEditor] Theme added")
+        print("[ThemeEditor] Theme added with name: " .. uniqueName)
         
-        -- Đợi một chút rồi apply
-        task.wait(0.05)
-        WindUI:SetTheme(self.CurrentTheme.Name)
+        -- Apply ngay lập tức
+        WindUI:SetTheme(uniqueName)
         print("[ThemeEditor] Theme set successfully")
+        
+        -- Force refresh UI nếu có method
+        if WindUI.RefreshTheme then
+            WindUI:RefreshTheme()
+        end
     end)
     
     if not success then
