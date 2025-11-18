@@ -1,6 +1,6 @@
 -- ==================== THEME EDITOR MODULE ====================
 -- Loaded from GitHub: Custom theme creation and management system
--- Requirements: WindUI, global variables from main scriptc
+-- Requirements: WindUI, global variables from main scriptxzxcz
 -- ==============================================================
 
 local Module = {}
@@ -156,7 +156,25 @@ function ThemeEditor:SaveThemeAs(themeName)
         libNoti("✅ Theme '" .. themeName .. "' đã được lưu!", 3)
         -- Delay nhỏ để file system kịp cập nhật
         task.wait(0.2)
-        self:RefreshThemeDropdown()
+        
+        -- Refresh cả 2 dropdown
+        local themes = self:GetThemeList()
+        
+        -- Refresh dropdown chọn theme
+        if self.DropdownRefs.ThemeList and self.DropdownRefs.ThemeList.SetValues then
+            pcall(function()
+                self.DropdownRefs.ThemeList:SetValues(themes)
+                print("[ThemeEditor] Updated ThemeList dropdown")
+            end)
+        end
+        
+        -- Refresh dropdown autoload
+        if self.autoloadDropdownRef and self.autoloadDropdownRef.SetValues then
+            pcall(function()
+                self.autoloadDropdownRef:SetValues(themes)
+                print("[ThemeEditor] Updated Autoload dropdown")
+            end)
+        end
     else
         print("[ThemeEditor] Save error: " .. tostring(errorMsg))
         libNoti("❌ Không thể lưu theme! Lỗi: " .. tostring(errorMsg), 5)
@@ -271,6 +289,219 @@ function ThemeEditor:RefreshThemeDropdown()
     end
     
     return themes
+end
+
+-- Hàm tạo các preset theme files
+function ThemeEditor:CreatePresetThemes()
+    if not writefile then return false end
+    
+    -- Tạo folder nếu chưa tồn tại
+    if makefolder and not isfolder(self.ConfigFolder) then
+        makefolder(self.ConfigFolder)
+    end
+    
+    local presets = {
+        ["Dark Mode"] = {
+            Name = "Dark Mode",
+            Accent = Color3.fromHex("#3b82f6"),
+            Background = Color3.fromHex("#0f0f0f"),
+            BackgroundTransparency = 0,
+            Outline = Color3.fromHex("#404040"),
+            Text = Color3.fromHex("#ffffff"),
+            Placeholder = Color3.fromHex("#6b6b6b"),
+            Button = Color3.fromHex("#1e1e1e"),
+            Icon = Color3.fromHex("#9ca3af"),
+            Hover = Color3.fromHex("#60a5fa"),
+            WindowBackground = Color3.fromHex("#0f0f0f"),
+            WindowShadow = Color3.fromHex("#000000"),
+            DialogBackground = Color3.fromHex("#0f0f0f"),
+            DialogBackgroundTransparency = 0,
+            DialogTitle = Color3.fromHex("#ffffff"),
+            DialogContent = Color3.fromHex("#ffffff"),
+            DialogIcon = Color3.fromHex("#9ca3af"),
+            WindowTopbarButtonIcon = Color3.fromHex("#9ca3af"),
+            WindowTopbarTitle = Color3.fromHex("#ffffff"),
+            WindowTopbarAuthor = Color3.fromHex("#ffffff"),
+            WindowTopbarIcon = Color3.fromHex("#ffffff"),
+            TabBackground = Color3.fromHex("#ffffff"),
+            TabTitle = Color3.fromHex("#ffffff"),
+            TabIcon = Color3.fromHex("#9ca3af"),
+            ElementBackground = Color3.fromHex("#ffffff"),
+            ElementTitle = Color3.fromHex("#ffffff"),
+            ElementDesc = Color3.fromHex("#ffffff"),
+            ElementIcon = Color3.fromHex("#9ca3af"),
+            PopupBackground = Color3.fromHex("#0f0f0f"),
+            PopupBackgroundTransparency = 0,
+            PopupTitle = Color3.fromHex("#ffffff"),
+            PopupContent = Color3.fromHex("#ffffff"),
+            PopupIcon = Color3.fromHex("#9ca3af")
+        },
+        ["Light Mode"] = {
+            Name = "Light Mode",
+            Accent = Color3.fromHex("#2563eb"),
+            Background = Color3.fromHex("#f8f9fa"),
+            BackgroundTransparency = 0,
+            Outline = Color3.fromHex("#dee2e6"),
+            Text = Color3.fromHex("#212529"),
+            Placeholder = Color3.fromHex("#868e96"),
+            Button = Color3.fromHex("#e9ecef"),
+            Icon = Color3.fromHex("#495057"),
+            Hover = Color3.fromHex("#3b82f6"),
+            WindowBackground = Color3.fromHex("#f8f9fa"),
+            WindowShadow = Color3.fromHex("#adb5bd"),
+            DialogBackground = Color3.fromHex("#f8f9fa"),
+            DialogBackgroundTransparency = 0,
+            DialogTitle = Color3.fromHex("#212529"),
+            DialogContent = Color3.fromHex("#212529"),
+            DialogIcon = Color3.fromHex("#495057"),
+            WindowTopbarButtonIcon = Color3.fromHex("#495057"),
+            WindowTopbarTitle = Color3.fromHex("#212529"),
+            WindowTopbarAuthor = Color3.fromHex("#212529"),
+            WindowTopbarIcon = Color3.fromHex("#212529"),
+            TabBackground = Color3.fromHex("#212529"),
+            TabTitle = Color3.fromHex("#212529"),
+            TabIcon = Color3.fromHex("#495057"),
+            ElementBackground = Color3.fromHex("#212529"),
+            ElementTitle = Color3.fromHex("#212529"),
+            ElementDesc = Color3.fromHex("#212529"),
+            ElementIcon = Color3.fromHex("#495057"),
+            PopupBackground = Color3.fromHex("#f8f9fa"),
+            PopupBackgroundTransparency = 0,
+            PopupTitle = Color3.fromHex("#212529"),
+            PopupContent = Color3.fromHex("#212529"),
+            PopupIcon = Color3.fromHex("#495057")
+        },
+        ["Cyberpunk"] = {
+            Name = "Cyberpunk",
+            Accent = Color3.fromHex("#ff00ff"),
+            Background = Color3.fromHex("#0a0a0f"),
+            BackgroundTransparency = 0,
+            Outline = Color3.fromHex("#00ffff"),
+            Text = Color3.fromHex("#00ffff"),
+            Placeholder = Color3.fromHex("#6b21a8"),
+            Button = Color3.fromHex("#1e1b4b"),
+            Icon = Color3.fromHex("#ff00ff"),
+            Hover = Color3.fromHex("#ffff00"),
+            WindowBackground = Color3.fromHex("#0a0a0f"),
+            WindowShadow = Color3.fromHex("#ff00ff"),
+            DialogBackground = Color3.fromHex("#0a0a0f"),
+            DialogBackgroundTransparency = 0,
+            DialogTitle = Color3.fromHex("#00ffff"),
+            DialogContent = Color3.fromHex("#00ffff"),
+            DialogIcon = Color3.fromHex("#ff00ff"),
+            WindowTopbarButtonIcon = Color3.fromHex("#ff00ff"),
+            WindowTopbarTitle = Color3.fromHex("#00ffff"),
+            WindowTopbarAuthor = Color3.fromHex("#00ffff"),
+            WindowTopbarIcon = Color3.fromHex("#00ffff"),
+            TabBackground = Color3.fromHex("#00ffff"),
+            TabTitle = Color3.fromHex("#00ffff"),
+            TabIcon = Color3.fromHex("#ff00ff"),
+            ElementBackground = Color3.fromHex("#00ffff"),
+            ElementTitle = Color3.fromHex("#00ffff"),
+            ElementDesc = Color3.fromHex("#00ffff"),
+            ElementIcon = Color3.fromHex("#ff00ff"),
+            PopupBackground = Color3.fromHex("#0a0a0f"),
+            PopupBackgroundTransparency = 0,
+            PopupTitle = Color3.fromHex("#00ffff"),
+            PopupContent = Color3.fromHex("#00ffff"),
+            PopupIcon = Color3.fromHex("#ff00ff")
+        },
+        ["Forest"] = {
+            Name = "Forest",
+            Accent = Color3.fromHex("#10b981"),
+            Background = Color3.fromHex("#1a2e1a"),
+            BackgroundTransparency = 0,
+            Outline = Color3.fromHex("#34d399"),
+            Text = Color3.fromHex("#d1fae5"),
+            Placeholder = Color3.fromHex("#6ee7b7"),
+            Button = Color3.fromHex("#064e3b"),
+            Icon = Color3.fromHex("#34d399"),
+            Hover = Color3.fromHex("#6ee7b7"),
+            WindowBackground = Color3.fromHex("#1a2e1a"),
+            WindowShadow = Color3.fromHex("#052e16"),
+            DialogBackground = Color3.fromHex("#1a2e1a"),
+            DialogBackgroundTransparency = 0,
+            DialogTitle = Color3.fromHex("#d1fae5"),
+            DialogContent = Color3.fromHex("#d1fae5"),
+            DialogIcon = Color3.fromHex("#34d399"),
+            WindowTopbarButtonIcon = Color3.fromHex("#34d399"),
+            WindowTopbarTitle = Color3.fromHex("#d1fae5"),
+            WindowTopbarAuthor = Color3.fromHex("#d1fae5"),
+            WindowTopbarIcon = Color3.fromHex("#d1fae5"),
+            TabBackground = Color3.fromHex("#d1fae5"),
+            TabTitle = Color3.fromHex("#d1fae5"),
+            TabIcon = Color3.fromHex("#34d399"),
+            ElementBackground = Color3.fromHex("#d1fae5"),
+            ElementTitle = Color3.fromHex("#d1fae5"),
+            ElementDesc = Color3.fromHex("#d1fae5"),
+            ElementIcon = Color3.fromHex("#34d399"),
+            PopupBackground = Color3.fromHex("#1a2e1a"),
+            PopupBackgroundTransparency = 0,
+            PopupTitle = Color3.fromHex("#d1fae5"),
+            PopupContent = Color3.fromHex("#d1fae5"),
+            PopupIcon = Color3.fromHex("#34d399")
+        },
+        ["Ocean"] = {
+            Name = "Ocean",
+            Accent = Color3.fromHex("#0ea5e9"),
+            Background = Color3.fromHex("#0c4a6e"),
+            BackgroundTransparency = 0,
+            Outline = Color3.fromHex("#38bdf8"),
+            Text = Color3.fromHex("#e0f2fe"),
+            Placeholder = Color3.fromHex("#7dd3fc"),
+            Button = Color3.fromHex("#075985"),
+            Icon = Color3.fromHex("#38bdf8"),
+            Hover = Color3.fromHex("#7dd3fc"),
+            WindowBackground = Color3.fromHex("#0c4a6e"),
+            WindowShadow = Color3.fromHex("#082f49"),
+            DialogBackground = Color3.fromHex("#0c4a6e"),
+            DialogBackgroundTransparency = 0,
+            DialogTitle = Color3.fromHex("#e0f2fe"),
+            DialogContent = Color3.fromHex("#e0f2fe"),
+            DialogIcon = Color3.fromHex("#38bdf8"),
+            WindowTopbarButtonIcon = Color3.fromHex("#38bdf8"),
+            WindowTopbarTitle = Color3.fromHex("#e0f2fe"),
+            WindowTopbarAuthor = Color3.fromHex("#e0f2fe"),
+            WindowTopbarIcon = Color3.fromHex("#e0f2fe"),
+            TabBackground = Color3.fromHex("#e0f2fe"),
+            TabTitle = Color3.fromHex("#e0f2fe"),
+            TabIcon = Color3.fromHex("#38bdf8"),
+            ElementBackground = Color3.fromHex("#e0f2fe"),
+            ElementTitle = Color3.fromHex("#e0f2fe"),
+            ElementDesc = Color3.fromHex("#e0f2fe"),
+            ElementIcon = Color3.fromHex("#38bdf8"),
+            PopupBackground = Color3.fromHex("#0c4a6e"),
+            PopupBackgroundTransparency = 0,
+            PopupTitle = Color3.fromHex("#e0f2fe"),
+            PopupContent = Color3.fromHex("#e0f2fe"),
+            PopupIcon = Color3.fromHex("#38bdf8")
+        }
+    }
+    
+    -- Lưu từng preset vào file
+    for themeName, themeData in pairs(presets) do
+        local filePath = self.ConfigFolder .. "/" .. themeName .. ".json"
+        
+        -- Chỉ tạo nếu file chưa tồn tại (không ghi đè theme đã có)
+        if not isfile or not isfile(filePath) then
+            local success = pcall(function()
+                local saveData = {
+                    CurrentTheme = themeData,
+                    BackgroundImage = "rbxassetid://127375677813832",
+                    BackgroundImageTransparency = 0.5
+                }
+                local jsonData = HttpService:JSONEncode(saveData)
+                writefile(filePath, jsonData)
+                print("[ThemeEditor] Created preset: " .. themeName)
+            end)
+            
+            if not success then
+                print("[ThemeEditor] Failed to create preset: " .. themeName)
+            end
+        end
+    end
+    
+    return true
 end
 
 -- Hàm migrate config cũ sang hệ thống mới (deprecated)
@@ -479,135 +710,256 @@ local function createThemeEditorTab()
         Description = "• Chỉnh màu sắc cho từng thành phần\n• Áp dụng để xem trước\n• Lưu theme để dùng lại sau\n• Load để tải theme đã lưu"
     })
     
-    ThemeTab:Divider({ Text = "Màu Sắc Chính" })
+    ThemeTab:Divider({ Text = "🎨 Màu Sắc Cơ Bản" })
     
-    -- Colorpicker cho Background
-    local bgColorpicker = ThemeTab:Colorpicker({
-        Title = "Màu Nền (Background)",
-        Description = "Màu nền chính của UI",
-        Color = ThemeEditor.CurrentTheme.Background,
-        Callback = function(color)
-            ThemeEditor.CurrentTheme.Background = color
-            ThemeEditor.CurrentTheme.WindowBackground = color
-            ThemeEditor.CurrentTheme.DialogBackground = color
-            ThemeEditor.CurrentTheme.PopupBackground = color
-        end
-    })
-    ThemeEditor.ColorpickerRefs.Background = bgColorpicker
-    
-    -- Colorpicker cho Accent
-    local accentColorpicker = ThemeTab:Colorpicker({
-        Title = "Màu Nhấn (Accent)",
-        Description = "Màu nhấn mạnh cho các phần tử",
+    -- Accent
+    ThemeEditor.ColorpickerRefs.Accent = ThemeTab:Colorpicker({
+        Title = "Accent",
+        Description = "Màu nhấn mạnh chính",
         Color = ThemeEditor.CurrentTheme.Accent,
-        Callback = function(color)
-            ThemeEditor.CurrentTheme.Accent = color
-        end
+        Callback = function(color) ThemeEditor.CurrentTheme.Accent = color end
     })
-    ThemeEditor.ColorpickerRefs.Accent = accentColorpicker
     
-    -- Colorpicker cho Text
-    local textColorpicker = ThemeTab:Colorpicker({
-        Title = "Màu Chữ (Text)",
+    -- Background
+    ThemeEditor.ColorpickerRefs.Background = ThemeTab:Colorpicker({
+        Title = "Background",
+        Description = "Màu nền chính",
+        Color = ThemeEditor.CurrentTheme.Background,
+        Callback = function(color) ThemeEditor.CurrentTheme.Background = color end
+    })
+    
+    -- Outline
+    ThemeEditor.ColorpickerRefs.Outline = ThemeTab:Colorpicker({
+        Title = "Outline",
+        Description = "Màu viền",
+        Color = ThemeEditor.CurrentTheme.Outline,
+        Callback = function(color) ThemeEditor.CurrentTheme.Outline = color end
+    })
+    
+    -- Text
+    ThemeEditor.ColorpickerRefs.Text = ThemeTab:Colorpicker({
+        Title = "Text",
         Description = "Màu chữ chính",
         Color = ThemeEditor.CurrentTheme.Text,
-        Callback = function(color)
-            ThemeEditor.CurrentTheme.Text = color
-            ThemeEditor.CurrentTheme.WindowTopbarTitle = color
-            ThemeEditor.CurrentTheme.WindowTopbarAuthor = color
-            ThemeEditor.CurrentTheme.WindowTopbarIcon = color
-            ThemeEditor.CurrentTheme.TabTitle = color
-            ThemeEditor.CurrentTheme.TabBackground = color
-            ThemeEditor.CurrentTheme.ElementTitle = color
-            ThemeEditor.CurrentTheme.ElementDesc = color
-            ThemeEditor.CurrentTheme.ElementBackground = color
-            ThemeEditor.CurrentTheme.DialogTitle = color
-            ThemeEditor.CurrentTheme.DialogContent = color
-            ThemeEditor.CurrentTheme.PopupTitle = color
-            ThemeEditor.CurrentTheme.PopupContent = color
-        end
+        Callback = function(color) ThemeEditor.CurrentTheme.Text = color end
     })
-    ThemeEditor.ColorpickerRefs.Text = textColorpicker
     
-    -- Colorpicker cho Outline
-    local outlineColorpicker = ThemeTab:Colorpicker({
-        Title = "Màu Viền (Outline)",
-        Description = "Màu viền của các phần tử",
-        Color = ThemeEditor.CurrentTheme.Outline,
-        Callback = function(color)
-            ThemeEditor.CurrentTheme.Outline = color
-        end
-    })
-    ThemeEditor.ColorpickerRefs.Outline = outlineColorpicker
-    
-    ThemeTab:Divider({ Text = "Màu Sắc Phụ" })
-    
-    -- Colorpicker cho Button
-    local buttonColorpicker = ThemeTab:Colorpicker({
-        Title = "Màu Nút (Button)",
-        Description = "Màu nền của các nút bấm",
-        Color = ThemeEditor.CurrentTheme.Button,
-        Callback = function(color)
-            ThemeEditor.CurrentTheme.Button = color
-        end
-    })
-    ThemeEditor.ColorpickerRefs.Button = buttonColorpicker
-    
-    -- Colorpicker cho Icon
-    local iconColorpicker = ThemeTab:Colorpicker({
-        Title = "Màu Icon",
-        Description = "Màu của các biểu tượng",
-        Color = ThemeEditor.CurrentTheme.Icon,
-        Callback = function(color)
-            ThemeEditor.CurrentTheme.Icon = color
-            ThemeEditor.CurrentTheme.TabIcon = color
-            ThemeEditor.CurrentTheme.ElementIcon = color
-            ThemeEditor.CurrentTheme.WindowTopbarButtonIcon = color
-            ThemeEditor.CurrentTheme.DialogIcon = color
-            ThemeEditor.CurrentTheme.PopupIcon = color
-        end
-    })
-    ThemeEditor.ColorpickerRefs.Icon = iconColorpicker
-    
-    -- Colorpicker cho Placeholder
-    local placeholderColorpicker = ThemeTab:Colorpicker({
-        Title = "Màu Placeholder",
-        Description = "Màu chữ mờ trong ô nhập liệu",
+    -- Placeholder
+    ThemeEditor.ColorpickerRefs.Placeholder = ThemeTab:Colorpicker({
+        Title = "Placeholder",
+        Description = "Màu chữ placeholder",
         Color = ThemeEditor.CurrentTheme.Placeholder,
-        Callback = function(color)
-            ThemeEditor.CurrentTheme.Placeholder = color
-        end
+        Callback = function(color) ThemeEditor.CurrentTheme.Placeholder = color end
     })
-    ThemeEditor.ColorpickerRefs.Placeholder = placeholderColorpicker
     
-    -- Colorpicker cho Hover
-    local hoverColorpicker = ThemeTab:Colorpicker({
-        Title = "Màu Hover",
-        Description = "Màu khi di chuột qua",
+    -- Button
+    ThemeEditor.ColorpickerRefs.Button = ThemeTab:Colorpicker({
+        Title = "Button",
+        Description = "Màu nút bấm",
+        Color = ThemeEditor.CurrentTheme.Button,
+        Callback = function(color) ThemeEditor.CurrentTheme.Button = color end
+    })
+    
+    -- Icon
+    ThemeEditor.ColorpickerRefs.Icon = ThemeTab:Colorpicker({
+        Title = "Icon",
+        Description = "Màu icon",
+        Color = ThemeEditor.CurrentTheme.Icon,
+        Callback = function(color) ThemeEditor.CurrentTheme.Icon = color end
+    })
+    
+    -- Hover
+    ThemeEditor.ColorpickerRefs.Hover = ThemeTab:Colorpicker({
+        Title = "Hover",
+        Description = "Màu khi hover",
         Color = ThemeEditor.CurrentTheme.Hover,
-        Callback = function(color)
-            ThemeEditor.CurrentTheme.Hover = color
-        end
+        Callback = function(color) ThemeEditor.CurrentTheme.Hover = color end
     })
-    ThemeEditor.ColorpickerRefs.Hover = hoverColorpicker
     
-    -- Colorpicker cho Window Shadow
-    local shadowColorpicker = ThemeTab:Colorpicker({
-        Title = "Màu Bóng Đổ (Shadow)",
-        Description = "Màu bóng đổ của cửa sổ",
+    ThemeTab:Divider({ Text = "🪟 Window" })
+    
+    -- WindowBackground
+    ThemeEditor.ColorpickerRefs.WindowBackground = ThemeTab:Colorpicker({
+        Title = "Window Background",
+        Description = "Màu nền cửa sổ",
+        Color = ThemeEditor.CurrentTheme.WindowBackground,
+        Callback = function(color) ThemeEditor.CurrentTheme.WindowBackground = color end
+    })
+    
+    -- WindowShadow
+    ThemeEditor.ColorpickerRefs.WindowShadow = ThemeTab:Colorpicker({
+        Title = "Window Shadow",
+        Description = "Màu bóng đổ cửa sổ",
         Color = ThemeEditor.CurrentTheme.WindowShadow,
-        Callback = function(color)
-            ThemeEditor.CurrentTheme.WindowShadow = color
-        end
+        Callback = function(color) ThemeEditor.CurrentTheme.WindowShadow = color end
     })
-    ThemeEditor.ColorpickerRefs.WindowShadow = shadowColorpicker
     
-    ThemeTab:Divider({ Text = "Độ Trong Suốt" })
+    -- WindowTopbarButtonIcon
+    ThemeEditor.ColorpickerRefs.WindowTopbarButtonIcon = ThemeTab:Colorpicker({
+        Title = "Window Topbar Button Icon",
+        Description = "Màu icon nút trên thanh topbar",
+        Color = ThemeEditor.CurrentTheme.WindowTopbarButtonIcon,
+        Callback = function(color) ThemeEditor.CurrentTheme.WindowTopbarButtonIcon = color end
+    })
+    
+    -- WindowTopbarTitle
+    ThemeEditor.ColorpickerRefs.WindowTopbarTitle = ThemeTab:Colorpicker({
+        Title = "Window Topbar Title",
+        Description = "Màu tiêu đề topbar",
+        Color = ThemeEditor.CurrentTheme.WindowTopbarTitle,
+        Callback = function(color) ThemeEditor.CurrentTheme.WindowTopbarTitle = color end
+    })
+    
+    -- WindowTopbarAuthor
+    ThemeEditor.ColorpickerRefs.WindowTopbarAuthor = ThemeTab:Colorpicker({
+        Title = "Window Topbar Author",
+        Description = "Màu tên tác giả topbar",
+        Color = ThemeEditor.CurrentTheme.WindowTopbarAuthor,
+        Callback = function(color) ThemeEditor.CurrentTheme.WindowTopbarAuthor = color end
+    })
+    
+    -- WindowTopbarIcon
+    ThemeEditor.ColorpickerRefs.WindowTopbarIcon = ThemeTab:Colorpicker({
+        Title = "Window Topbar Icon",
+        Description = "Màu icon topbar",
+        Color = ThemeEditor.CurrentTheme.WindowTopbarIcon,
+        Callback = function(color) ThemeEditor.CurrentTheme.WindowTopbarIcon = color end
+    })
+    
+    ThemeTab:Divider({ Text = "💬 Dialog" })
+    
+    -- DialogBackground
+    ThemeEditor.ColorpickerRefs.DialogBackground = ThemeTab:Colorpicker({
+        Title = "Dialog Background",
+        Description = "Màu nền hộp thoại",
+        Color = ThemeEditor.CurrentTheme.DialogBackground,
+        Callback = function(color) ThemeEditor.CurrentTheme.DialogBackground = color end
+    })
+    
+    -- DialogTitle
+    ThemeEditor.ColorpickerRefs.DialogTitle = ThemeTab:Colorpicker({
+        Title = "Dialog Title",
+        Description = "Màu tiêu đề dialog",
+        Color = ThemeEditor.CurrentTheme.DialogTitle,
+        Callback = function(color) ThemeEditor.CurrentTheme.DialogTitle = color end
+    })
+    
+    -- DialogContent
+    ThemeEditor.ColorpickerRefs.DialogContent = ThemeTab:Colorpicker({
+        Title = "Dialog Content",
+        Description = "Màu nội dung dialog",
+        Color = ThemeEditor.CurrentTheme.DialogContent,
+        Callback = function(color) ThemeEditor.CurrentTheme.DialogContent = color end
+    })
+    
+    -- DialogIcon
+    ThemeEditor.ColorpickerRefs.DialogIcon = ThemeTab:Colorpicker({
+        Title = "Dialog Icon",
+        Description = "Màu icon dialog",
+        Color = ThemeEditor.CurrentTheme.DialogIcon,
+        Callback = function(color) ThemeEditor.CurrentTheme.DialogIcon = color end
+    })
+    
+    ThemeTab:Divider({ Text = "📑 Tab" })
+    
+    -- TabBackground
+    ThemeEditor.ColorpickerRefs.TabBackground = ThemeTab:Colorpicker({
+        Title = "Tab Background",
+        Description = "Màu nền tab",
+        Color = ThemeEditor.CurrentTheme.TabBackground,
+        Callback = function(color) ThemeEditor.CurrentTheme.TabBackground = color end
+    })
+    
+    -- TabTitle
+    ThemeEditor.ColorpickerRefs.TabTitle = ThemeTab:Colorpicker({
+        Title = "Tab Title",
+        Description = "Màu tiêu đề tab",
+        Color = ThemeEditor.CurrentTheme.TabTitle,
+        Callback = function(color) ThemeEditor.CurrentTheme.TabTitle = color end
+    })
+    
+    -- TabIcon
+    ThemeEditor.ColorpickerRefs.TabIcon = ThemeTab:Colorpicker({
+        Title = "Tab Icon",
+        Description = "Màu icon tab",
+        Color = ThemeEditor.CurrentTheme.TabIcon,
+        Callback = function(color) ThemeEditor.CurrentTheme.TabIcon = color end
+    })
+    
+    ThemeTab:Divider({ Text = "🔧 Element" })
+    
+    -- ElementBackground
+    ThemeEditor.ColorpickerRefs.ElementBackground = ThemeTab:Colorpicker({
+        Title = "Element Background",
+        Description = "Màu nền element",
+        Color = ThemeEditor.CurrentTheme.ElementBackground,
+        Callback = function(color) ThemeEditor.CurrentTheme.ElementBackground = color end
+    })
+    
+    -- ElementTitle
+    ThemeEditor.ColorpickerRefs.ElementTitle = ThemeTab:Colorpicker({
+        Title = "Element Title",
+        Description = "Màu tiêu đề element",
+        Color = ThemeEditor.CurrentTheme.ElementTitle,
+        Callback = function(color) ThemeEditor.CurrentTheme.ElementTitle = color end
+    })
+    
+    -- ElementDesc
+    ThemeEditor.ColorpickerRefs.ElementDesc = ThemeTab:Colorpicker({
+        Title = "Element Description",
+        Description = "Màu mô tả element",
+        Color = ThemeEditor.CurrentTheme.ElementDesc,
+        Callback = function(color) ThemeEditor.CurrentTheme.ElementDesc = color end
+    })
+    
+    -- ElementIcon
+    ThemeEditor.ColorpickerRefs.ElementIcon = ThemeTab:Colorpicker({
+        Title = "Element Icon",
+        Description = "Màu icon element",
+        Color = ThemeEditor.CurrentTheme.ElementIcon,
+        Callback = function(color) ThemeEditor.CurrentTheme.ElementIcon = color end
+    })
+    
+    ThemeTab:Divider({ Text = "🔔 Popup" })
+    
+    -- PopupBackground
+    ThemeEditor.ColorpickerRefs.PopupBackground = ThemeTab:Colorpicker({
+        Title = "Popup Background",
+        Description = "Màu nền popup",
+        Color = ThemeEditor.CurrentTheme.PopupBackground,
+        Callback = function(color) ThemeEditor.CurrentTheme.PopupBackground = color end
+    })
+    
+    -- PopupTitle
+    ThemeEditor.ColorpickerRefs.PopupTitle = ThemeTab:Colorpicker({
+        Title = "Popup Title",
+        Description = "Màu tiêu đề popup",
+        Color = ThemeEditor.CurrentTheme.PopupTitle,
+        Callback = function(color) ThemeEditor.CurrentTheme.PopupTitle = color end
+    })
+    
+    -- PopupContent
+    ThemeEditor.ColorpickerRefs.PopupContent = ThemeTab:Colorpicker({
+        Title = "Popup Content",
+        Description = "Màu nội dung popup",
+        Color = ThemeEditor.CurrentTheme.PopupContent,
+        Callback = function(color) ThemeEditor.CurrentTheme.PopupContent = color end
+    })
+    
+    -- PopupIcon
+    ThemeEditor.ColorpickerRefs.PopupIcon = ThemeTab:Colorpicker({
+        Title = "Popup Icon",
+        Description = "Màu icon popup",
+        Color = ThemeEditor.CurrentTheme.PopupIcon,
+        Callback = function(color) ThemeEditor.CurrentTheme.PopupIcon = color end
+    })
+    
+    ThemeTab:Divider({ Text = "⚪ Độ Trong Suốt" })
     
     -- Slider cho Background Transparency
     ThemeTab:Slider({
-        Title = "Độ Trong Suốt Nền",
-        Description = "Điều chỉnh độ trong suốt của nền",
+        Title = "Background Transparency",
+        Description = "Độ trong suốt nền chính",
         Step = 0.01,
         Value = {
             Min = 0,
@@ -616,7 +968,35 @@ local function createThemeEditorTab()
         },
         Callback = function(value)
             ThemeEditor.CurrentTheme.BackgroundTransparency = value
+        end
+    })
+    
+    -- Slider cho Dialog Background Transparency
+    ThemeTab:Slider({
+        Title = "Dialog Background Transparency",
+        Description = "Độ trong suốt nền dialog",
+        Step = 0.01,
+        Value = {
+            Min = 0,
+            Max = 1,
+            Default = ThemeEditor.CurrentTheme.DialogBackgroundTransparency
+        },
+        Callback = function(value)
             ThemeEditor.CurrentTheme.DialogBackgroundTransparency = value
+        end
+    })
+    
+    -- Slider cho Popup Background Transparency
+    ThemeTab:Slider({
+        Title = "Popup Background Transparency",
+        Description = "Độ trong suốt nền popup",
+        Step = 0.01,
+        Value = {
+            Min = 0,
+            Max = 1,
+            Default = ThemeEditor.CurrentTheme.PopupBackgroundTransparency
+        },
+        Callback = function(value)
             ThemeEditor.CurrentTheme.PopupBackgroundTransparency = value
         end
     })
@@ -823,237 +1203,7 @@ local function createThemeEditorTab()
     
     ThemeTab:Paragraph({
         Title = "📦 Theme Có Sẵn",
-        Description = "Chọn một trong các theme có sẵn bên dưới"
-    })
-    
-    -- Preset: Dark Mode
-    ThemeTab:Button({
-        Title = "🌙 Dark Mode",
-        Description = "Theme tối cổ điển",
-        Callback = function()
-            ThemeEditor.CurrentTheme = {
-                Name = "Dark Mode",
-                Accent = Color3.fromHex("#3b82f6"),
-                Background = Color3.fromHex("#0f0f0f"),
-                BackgroundTransparency = 0,
-                Outline = Color3.fromHex("#404040"),
-                Text = Color3.fromHex("#ffffff"),
-                Placeholder = Color3.fromHex("#6b6b6b"),
-                Button = Color3.fromHex("#1e1e1e"),
-                Icon = Color3.fromHex("#9ca3af"),
-                Hover = Color3.fromHex("#60a5fa"),
-                WindowBackground = Color3.fromHex("#0f0f0f"),
-                WindowShadow = Color3.fromHex("#000000"),
-                DialogBackground = Color3.fromHex("#0f0f0f"),
-                DialogBackgroundTransparency = 0,
-                DialogTitle = Color3.fromHex("#ffffff"),
-                DialogContent = Color3.fromHex("#ffffff"),
-                DialogIcon = Color3.fromHex("#9ca3af"),
-                WindowTopbarButtonIcon = Color3.fromHex("#9ca3af"),
-                WindowTopbarTitle = Color3.fromHex("#ffffff"),
-                WindowTopbarAuthor = Color3.fromHex("#ffffff"),
-                WindowTopbarIcon = Color3.fromHex("#ffffff"),
-                TabBackground = Color3.fromHex("#ffffff"),
-                TabTitle = Color3.fromHex("#ffffff"),
-                TabIcon = Color3.fromHex("#9ca3af"),
-                ElementBackground = Color3.fromHex("#ffffff"),
-                ElementTitle = Color3.fromHex("#ffffff"),
-                ElementDesc = Color3.fromHex("#ffffff"),
-                ElementIcon = Color3.fromHex("#9ca3af"),
-                PopupBackground = Color3.fromHex("#0f0f0f"),
-                PopupBackgroundTransparency = 0,
-                PopupTitle = Color3.fromHex("#ffffff"),
-                PopupContent = Color3.fromHex("#ffffff"),
-                PopupIcon = Color3.fromHex("#9ca3af")
-            }
-            ThemeEditor:ApplyTheme()
-            ThemeEditor:UpdateAllUI()
-            libNoti("✅ Đã áp dụng Dark Mode!", 2)
-        end
-    })
-    
-    -- Preset: Light Mode
-    ThemeTab:Button({
-        Title = "☀️ Light Mode",
-        Description = "Theme sáng dễ nhìn",
-        Callback = function()
-            ThemeEditor.CurrentTheme = {
-                Name = "Light Mode",
-                Accent = Color3.fromHex("#2563eb"),
-                Background = Color3.fromHex("#f8f9fa"),
-                BackgroundTransparency = 0,
-                Outline = Color3.fromHex("#dee2e6"),
-                Text = Color3.fromHex("#212529"),
-                Placeholder = Color3.fromHex("#868e96"),
-                Button = Color3.fromHex("#e9ecef"),
-                Icon = Color3.fromHex("#495057"),
-                Hover = Color3.fromHex("#3b82f6"),
-                WindowBackground = Color3.fromHex("#f8f9fa"),
-                WindowShadow = Color3.fromHex("#adb5bd"),
-                DialogBackground = Color3.fromHex("#f8f9fa"),
-                DialogBackgroundTransparency = 0,
-                DialogTitle = Color3.fromHex("#212529"),
-                DialogContent = Color3.fromHex("#212529"),
-                DialogIcon = Color3.fromHex("#495057"),
-                WindowTopbarButtonIcon = Color3.fromHex("#495057"),
-                WindowTopbarTitle = Color3.fromHex("#212529"),
-                WindowTopbarAuthor = Color3.fromHex("#212529"),
-                WindowTopbarIcon = Color3.fromHex("#212529"),
-                TabBackground = Color3.fromHex("#212529"),
-                TabTitle = Color3.fromHex("#212529"),
-                TabIcon = Color3.fromHex("#495057"),
-                ElementBackground = Color3.fromHex("#212529"),
-                ElementTitle = Color3.fromHex("#212529"),
-                ElementDesc = Color3.fromHex("#212529"),
-                ElementIcon = Color3.fromHex("#495057"),
-                PopupBackground = Color3.fromHex("#f8f9fa"),
-                PopupBackgroundTransparency = 0,
-                PopupTitle = Color3.fromHex("#212529"),
-                PopupContent = Color3.fromHex("#212529"),
-                PopupIcon = Color3.fromHex("#495057")
-            }
-            ThemeEditor:ApplyTheme()
-            ThemeEditor:UpdateAllUI()
-            libNoti("✅ Đã áp dụng Light Mode!", 2)
-        end
-    })
-    
-    -- Preset: Cyberpunk
-    ThemeTab:Button({
-        Title = "🌆 Cyberpunk",
-        Description = "Theme neon sáng rực",
-        Callback = function()
-            ThemeEditor.CurrentTheme = {
-                Name = "Cyberpunk",
-                Accent = Color3.fromHex("#ff00ff"),
-                Background = Color3.fromHex("#0a0a0f"),
-                BackgroundTransparency = 0,
-                Outline = Color3.fromHex("#00ffff"),
-                Text = Color3.fromHex("#00ffff"),
-                Placeholder = Color3.fromHex("#6b21a8"),
-                Button = Color3.fromHex("#1e1b4b"),
-                Icon = Color3.fromHex("#ff00ff"),
-                Hover = Color3.fromHex("#ffff00"),
-                WindowBackground = Color3.fromHex("#0a0a0f"),
-                WindowShadow = Color3.fromHex("#ff00ff"),
-                DialogBackground = Color3.fromHex("#0a0a0f"),
-                DialogBackgroundTransparency = 0,
-                DialogTitle = Color3.fromHex("#00ffff"),
-                DialogContent = Color3.fromHex("#00ffff"),
-                DialogIcon = Color3.fromHex("#ff00ff"),
-                WindowTopbarButtonIcon = Color3.fromHex("#ff00ff"),
-                WindowTopbarTitle = Color3.fromHex("#00ffff"),
-                WindowTopbarAuthor = Color3.fromHex("#00ffff"),
-                WindowTopbarIcon = Color3.fromHex("#00ffff"),
-                TabBackground = Color3.fromHex("#00ffff"),
-                TabTitle = Color3.fromHex("#00ffff"),
-                TabIcon = Color3.fromHex("#ff00ff"),
-                ElementBackground = Color3.fromHex("#00ffff"),
-                ElementTitle = Color3.fromHex("#00ffff"),
-                ElementDesc = Color3.fromHex("#00ffff"),
-                ElementIcon = Color3.fromHex("#ff00ff"),
-                PopupBackground = Color3.fromHex("#0a0a0f"),
-                PopupBackgroundTransparency = 0,
-                PopupTitle = Color3.fromHex("#00ffff"),
-                PopupContent = Color3.fromHex("#00ffff"),
-                PopupIcon = Color3.fromHex("#ff00ff")
-            }
-            ThemeEditor:ApplyTheme()
-            ThemeEditor:UpdateAllUI()
-            libNoti("✅ Đã áp dụng Cyberpunk!", 2)
-        end
-    })
-    
-    -- Preset: Forest
-    ThemeTab:Button({
-        Title = "🌲 Forest",
-        Description = "Theme xanh lá thiên nhiên",
-        Callback = function()
-            ThemeEditor.CurrentTheme = {
-                Name = "Forest",
-                Accent = Color3.fromHex("#10b981"),
-                Background = Color3.fromHex("#1a2e1a"),
-                BackgroundTransparency = 0,
-                Outline = Color3.fromHex("#34d399"),
-                Text = Color3.fromHex("#d1fae5"),
-                Placeholder = Color3.fromHex("#6ee7b7"),
-                Button = Color3.fromHex("#064e3b"),
-                Icon = Color3.fromHex("#34d399"),
-                Hover = Color3.fromHex("#6ee7b7"),
-                WindowBackground = Color3.fromHex("#1a2e1a"),
-                WindowShadow = Color3.fromHex("#052e16"),
-                DialogBackground = Color3.fromHex("#1a2e1a"),
-                DialogBackgroundTransparency = 0,
-                DialogTitle = Color3.fromHex("#d1fae5"),
-                DialogContent = Color3.fromHex("#d1fae5"),
-                DialogIcon = Color3.fromHex("#34d399"),
-                WindowTopbarButtonIcon = Color3.fromHex("#34d399"),
-                WindowTopbarTitle = Color3.fromHex("#d1fae5"),
-                WindowTopbarAuthor = Color3.fromHex("#d1fae5"),
-                WindowTopbarIcon = Color3.fromHex("#d1fae5"),
-                TabBackground = Color3.fromHex("#d1fae5"),
-                TabTitle = Color3.fromHex("#d1fae5"),
-                TabIcon = Color3.fromHex("#34d399"),
-                ElementBackground = Color3.fromHex("#d1fae5"),
-                ElementTitle = Color3.fromHex("#d1fae5"),
-                ElementDesc = Color3.fromHex("#d1fae5"),
-                ElementIcon = Color3.fromHex("#34d399"),
-                PopupBackground = Color3.fromHex("#1a2e1a"),
-                PopupBackgroundTransparency = 0,
-                PopupTitle = Color3.fromHex("#d1fae5"),
-                PopupContent = Color3.fromHex("#d1fae5"),
-                PopupIcon = Color3.fromHex("#34d399")
-            }
-            ThemeEditor:ApplyTheme()
-            ThemeEditor:UpdateAllUI()
-            libNoti("✅ Đã áp dụng Forest!", 2)
-        end
-    })
-    
-    -- Preset: Ocean
-    ThemeTab:Button({
-        Title = "🌊 Ocean",
-        Description = "Theme xanh dương đại dương",
-        Callback = function()
-            ThemeEditor.CurrentTheme = {
-                Name = "Ocean",
-                Accent = Color3.fromHex("#0ea5e9"),
-                Background = Color3.fromHex("#0c4a6e"),
-                BackgroundTransparency = 0,
-                Outline = Color3.fromHex("#38bdf8"),
-                Text = Color3.fromHex("#e0f2fe"),
-                Placeholder = Color3.fromHex("#7dd3fc"),
-                Button = Color3.fromHex("#075985"),
-                Icon = Color3.fromHex("#38bdf8"),
-                Hover = Color3.fromHex("#7dd3fc"),
-                WindowBackground = Color3.fromHex("#0c4a6e"),
-                WindowShadow = Color3.fromHex("#082f49"),
-                DialogBackground = Color3.fromHex("#0c4a6e"),
-                DialogBackgroundTransparency = 0,
-                DialogTitle = Color3.fromHex("#e0f2fe"),
-                DialogContent = Color3.fromHex("#e0f2fe"),
-                DialogIcon = Color3.fromHex("#38bdf8"),
-                WindowTopbarButtonIcon = Color3.fromHex("#38bdf8"),
-                WindowTopbarTitle = Color3.fromHex("#e0f2fe"),
-                WindowTopbarAuthor = Color3.fromHex("#e0f2fe"),
-                WindowTopbarIcon = Color3.fromHex("#e0f2fe"),
-                TabBackground = Color3.fromHex("#e0f2fe"),
-                TabTitle = Color3.fromHex("#e0f2fe"),
-                TabIcon = Color3.fromHex("#38bdf8"),
-                ElementBackground = Color3.fromHex("#e0f2fe"),
-                ElementTitle = Color3.fromHex("#e0f2fe"),
-                ElementDesc = Color3.fromHex("#e0f2fe"),
-                ElementIcon = Color3.fromHex("#38bdf8"),
-                PopupBackground = Color3.fromHex("#0c4a6e"),
-                PopupBackgroundTransparency = 0,
-                PopupTitle = Color3.fromHex("#e0f2fe"),
-                PopupContent = Color3.fromHex("#e0f2fe"),
-                PopupIcon = Color3.fromHex("#38bdf8")
-            }
-            ThemeEditor:ApplyTheme()
-            ThemeEditor:UpdateAllUI()
-            libNoti("✅ Đã áp dụng Ocean!", 2)
-        end
+        Description = "5 theme preset đã được tự động tạo sẵn:\n• Dark Mode\n• Light Mode\n• Cyberpunk\n• Forest\n• Ocean\n\nBạn có thể chọn từ dropdown ở trên để load hoặc set autoload."
     })
     
     -- Load autoload theme setting từ file
@@ -1085,6 +1235,12 @@ function Module:Init()
     if PlayerLocal and PlayerLocal.Name then
         ThemeEditor.ConfigFile = "AnyaHub_ThemeConfig_" .. PlayerLocal.Name .. ".txt"
     end
+    
+    -- ✅ TẠO PRESET THEMES TRƯỚC KHI TẠO UI
+    task.spawn(function()
+        ThemeEditor:CreatePresetThemes()
+        print("[ThemeEditor] Preset themes created")
+    end)
     
     -- Tự động migrate config cũ và load theme trước khi tạo tab
     task.spawn(function()
