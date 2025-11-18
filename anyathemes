@@ -1,5 +1,5 @@
 -- ==================== THEME EDITOR MODULE ====================
--- Loaded from GitHub: Custom theme creation and madnagement system
+-- Loaded from GitHub: Custom theme creation and management systemx
 -- Requirements: WindUI, global variables from main script
 -- ==============================================================
 
@@ -551,7 +551,88 @@ local function createThemeEditorTab()
     
     -- Colorpicker cho Hover
     local hoverColorpicker = ThemeTab:Colorpicker({
-        Title = "Màu Hover",Background Image" })
+        Title = "Màu Hover",
+        Description = "Màu khi di chuột qua",
+        Color = ThemeEditor.CurrentTheme.Hover,
+        Callback = function(color)
+            ThemeEditor.CurrentTheme.Hover = color
+        end
+    })
+    ThemeEditor.ColorpickerRefs.Hover = hoverColorpicker
+    
+    -- Colorpicker cho Window Shadow
+    local shadowColorpicker = ThemeTab:Colorpicker({
+        Title = "Màu Bóng Đổ (Shadow)",
+        Description = "Màu bóng đổ của cửa sổ",
+        Color = ThemeEditor.CurrentTheme.WindowShadow,
+        Callback = function(color)
+            ThemeEditor.CurrentTheme.WindowShadow = color
+        end
+    })
+    ThemeEditor.ColorpickerRefs.WindowShadow = shadowColorpicker
+    
+    ThemeTab:Divider({ Text = "Độ Trong Suốt" })
+    
+    -- Slider cho Background Transparency
+    ThemeTab:Slider({
+        Title = "Độ Trong Suốt Nền",
+        Description = "Điều chỉnh độ trong suốt của nền",
+        Step = 0.01,
+        Value = {
+            Min = 0,
+            Max = 1,
+            Default = ThemeEditor.CurrentTheme.BackgroundTransparency
+        },
+        Callback = function(value)
+            ThemeEditor.CurrentTheme.BackgroundTransparency = value
+            ThemeEditor.CurrentTheme.DialogBackgroundTransparency = value
+            ThemeEditor.CurrentTheme.PopupBackgroundTransparency = value
+        end
+    })
+    
+    ThemeTab:Divider({ Text = "Điều Khiển" })
+    
+    -- Button Áp Dụng
+    ThemeTab:Button({
+        Title = "✨ Áp Dụng Theme",
+        Description = "Áp dụng theme hiện tại",
+        Callback = function()
+            if ThemeEditor:ApplyTheme() then
+                libNoti("✅ Theme đã được áp dụng!", 2)
+            else
+                libNoti("❌ Không thể áp dụng theme!", 3)
+            end
+        end
+    })
+    
+    -- Button Lưu
+    ThemeTab:Button({
+        Title = "💾 Lưu Theme",
+        Description = "Lưu theme hiện tại vào file",
+        Callback = function()
+            ThemeEditor:SaveTheme()
+        end
+    })
+    
+    -- Button Load
+    ThemeTab:Button({
+        Title = "📂 Tải Theme Đã Lưu",
+        Description = "Tải theme từ file đã lưu",
+        Callback = function()
+            ThemeEditor:LoadTheme()
+        end
+    })
+    
+    -- Button Reset
+    ThemeTab:Button({
+        Title = "🔄 Reset Về Pastel Pink",
+        Description = "Đặt lại theme về Pastel Pink (theme mặc định)",
+        Callback = function()
+            ThemeEditor:ResetToDefault()
+        end
+    })
+    
+    ThemeTab:Divider({ Text = "Background Image" })
     
     -- Input cho Background Image Asset ID
     local bgImageInput = ThemeTab:Input({
@@ -659,87 +740,6 @@ local function createThemeEditorTab()
             ThemeEditor:ApplyBackgroundImage()
             ThemeEditor:UpdateAllUI()
             libNoti("✅ Đã tắt hình nền!", 2)
-        end
-    })
-    
-    ThemeTab:Divider({ Text = "
-        Description = "Màu khi di chuột qua",
-        Color = ThemeEditor.CurrentTheme.Hover,
-        Callback = function(color)
-            ThemeEditor.CurrentTheme.Hover = color
-        end
-    })
-    ThemeEditor.ColorpickerRefs.Hover = hoverColorpicker
-    
-    -- Colorpicker cho Window Shadow
-    local shadowColorpicker = ThemeTab:Colorpicker({
-        Title = "Màu Bóng Đổ (Shadow)",
-        Description = "Màu bóng đổ của cửa sổ",
-        Color = ThemeEditor.CurrentTheme.WindowShadow,
-        Callback = function(color)
-            ThemeEditor.CurrentTheme.WindowShadow = color
-        end
-    })
-    ThemeEditor.ColorpickerRefs.WindowShadow = shadowColorpicker
-    
-    ThemeTab:Divider({ Text = "Độ Trong Suốt" })
-    
-    -- Slider cho Background Transparency
-    ThemeTab:Slider({
-        Title = "Độ Trong Suốt Nền",
-        Description = "Điều chỉnh độ trong suốt của nền",
-        Step = 0.01,
-        Value = {
-            Min = 0,
-            Max = 1,
-            Default = ThemeEditor.CurrentTheme.BackgroundTransparency
-        },
-        Callback = function(value)
-            ThemeEditor.CurrentTheme.BackgroundTransparency = value
-            ThemeEditor.CurrentTheme.DialogBackgroundTransparency = value
-            ThemeEditor.CurrentTheme.PopupBackgroundTransparency = value
-        end
-    })
-    
-    ThemeTab:Divider({ Text = "Điều Khiển" })
-    
-    -- Button Áp Dụng
-    ThemeTab:Button({
-        Title = "✨ Áp Dụng Theme",
-        Description = "Áp dụng theme hiện tại",
-        Callback = function()
-            if ThemeEditor:ApplyTheme() then
-                libNoti("✅ Theme đã được áp dụng!", 2)
-            else
-                libNoti("❌ Không thể áp dụng theme!", 3)
-            end
-        end
-    })
-    
-    -- Button Lưu
-    ThemeTab:Button({
-        Title = "💾 Lưu Theme",
-        Description = "Lưu theme hiện tại vào file",
-        Callback = function()
-            ThemeEditor:SaveTheme()
-        end
-    })
-    
-    -- Button Load
-    ThemeTab:Button({
-        Title = "📂 Tải Theme Đã Lưu",
-        Description = "Tải theme từ file đã lưu",
-        Callback = function()
-            ThemeEditor:LoadTheme()
-        end
-    })
-    
-    -- Button Reset
-    ThemeTab:Button({
-        Title = "🔄 Reset Về Pastel Pink",
-        Description = "Đặt lại theme về Pastel Pink (theme mặc định)",
-        Callback = function()
-            ThemeEditor:ResetToDefault()
         end
     })
     
