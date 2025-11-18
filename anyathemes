@@ -1,6 +1,6 @@
 -- ==================== THEME EDITOR MODULE ====================
 -- Loaded from GitHub: Custom theme creation and management system
--- Requirements: WindUI, global variables from main script
+-- Requirements: WindUI, global variables from main scriptssssss
 -- ==============================================================
 
 local Module = {}
@@ -1211,31 +1211,9 @@ function Module:Init()
         ThemeEditor:MigrateOldConfig()
     end)
     
-    -- ✅ LOAD THEME BEFORE CREATING UI TO PREVENT DEFAULT FLASH
-    local autoloadFile = ThemeEditor.ConfigFolder .. "/_autoload.txt"
-    local themeLoaded = false
+    -- ✅ Theme already loaded in anya.lua before Window creation
+    -- No need to load theme here anymore
     
-    if isfile and isfile(autoloadFile) then
-        local success, themeToLoad = pcall(function()
-            return readfile(autoloadFile)
-        end)
-        
-        if success and themeToLoad and themeToLoad ~= "" and themeToLoad ~= "None" then
-            task.wait(0.5)
-            if ThemeEditor:LoadThemeByName(themeToLoad) then
-                libNoti("🎨 Auto-loaded theme: " .. themeToLoad, 4)
-                themeLoaded = true
-            end
-        end
-    end
-    
-    -- ✅ If no autoload theme, set default Pastel Pink
-    if not themeLoaded then
-        task.wait(0.5)
-        ThemeEditor:ApplyTheme()
-    end
-    
-    task.wait(0.1)
     createThemeEditorTab()
 end
 
