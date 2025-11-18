@@ -1,14 +1,11 @@
 -- ==================== THEME EDITOR MODULE ====================
 -- Loaded from GitHub: Custom theme creation and management system
--- Requirements: WindUI, global variables from main script
+-- Requirements: WindUI, global variables from main scriptccccccccccccc
 -- ==============================================================
 
 local Module = {}
 
--- Tắt toàn bộ log console trong module này
-local warn = function(...) end
-
--- ✅ Lấy các biến cần thiết từ file chính
+-- ✅ Get required variables from main script
 local WindUI = _G.WindUI
 local Window = _G.Window
 local PlayerLocal = _G.PlayerLocal
@@ -16,21 +13,21 @@ local HttpService = _G.HttpService
 
 -- ==================== THEME EDITOR GLOBALS ====================
 local ThemeEditor = {
-    -- Theme mặc định (Pastel Pink từ anya.lua)
+    -- Default theme (Pastel Pink from anya.lua)
     CurrentTheme = {
         Name = "Pastel Pink",
-        Accent = Color3.fromHex("#FFB5D8"),  -- hồng pastel
-        Background = Color3.fromHex("#FAF0F5"),  -- trắng hồng nhạt
+        Accent = Color3.fromHex("#FFB5D8"),
+        Background = Color3.fromHex("#FAF0F5"),
         BackgroundTransparency = 0,
-        Outline = Color3.fromHex("#E8A5C8"),  -- hồng pastel đậm
-        Text = Color3.fromHex("#8B4F7D"),  -- tím đậm
-        Placeholder = Color3.fromHex("#C89FB8"),  -- hồng tím pastel
-        Button = Color3.fromHex("#F0B8D8"),  -- hồng pastel
-        Icon = Color3.fromHex("#E89DC8"),  -- hồng pastel
-        Hover = Color3.fromHex("#FFC9E5"),  -- hồng pastel sáng
+        Outline = Color3.fromHex("#E8A5C8"),
+        Text = Color3.fromHex("#8B4F7D"),
+        Placeholder = Color3.fromHex("#C89FB8"),
+        Button = Color3.fromHex("#F0B8D8"),
+        Icon = Color3.fromHex("#E89DC8"),
+        Hover = Color3.fromHex("#FFC9E5"),
         WindowBackground = Color3.fromHex("#FAF0F5"),
         WindowShadow = Color3.fromHex("#E8A5C8"),
-        DialogBackground = Color3.fromHex("#F5E6F0"),  -- tím pastel rất nhạt
+        DialogBackground = Color3.fromHex("#F5E6F0"),
         DialogBackgroundTransparency = 0,
         DialogTitle = Color3.fromHex("#8B4F7D"),
         DialogContent = Color3.fromHex("#8B4F7D"),
@@ -52,19 +49,15 @@ local ThemeEditor = {
         PopupContent = Color3.fromHex("#8B4F7D"),
         PopupIcon = Color3.fromHex("#E89DC8")
     },
-    -- Background Image Settings
     BackgroundImage = "rbxassetid://127375677813832",
     BackgroundImageTransparency = 0.5,
-    -- Lưu references đến colorpickers để update sau
     ColorpickerRefs = {},
     InputRefs = {},
     SliderRefs = {},
     DropdownRefs = {},
-    -- Config folder và file riêng (không lưu qua ConfigSystem chung)
     ConfigFolder = "AnyaHub_Themes",
-    ConfigFile = "",  -- Sẽ set trong Init()
+    ConfigFile = "",
     CurrentThemeName = "Pastel Pink",
-    -- Autoload settings
     autoloadTheme = "",
     autoloadDropdownRef = nil
 }
@@ -115,67 +108,51 @@ local function DeserializeTheme(serialized)
 end
 
 -- ==================== THEME FUNCTIONS ====================
--- Hàm lấy danh sách theme đã lưu
 function ThemeEditor:GetThemeList()
     if not (isfolder and listfiles) then 
-        print("[ThemeEditor] isfolder hoặc listfiles không khả dụng")
         return {"Default"} 
     end
     
-    local themes = {"Default"}  -- Theme mặc định luôn có
+    local themes = {"Default"}
     
-    -- Tạo folder nếu chưa tồn tại
     if not isfolder(self.ConfigFolder) then
         if makefolder then
             makefolder(self.ConfigFolder)
-            print("[ThemeEditor] Created folder in GetThemeList: " .. self.ConfigFolder)
         end
         return themes
     end
     
-    -- Lấy danh sách file
     local success, files = pcall(function()
         return listfiles(self.ConfigFolder)
     end)
     
     if success and files then
-        print("[ThemeEditor] Found " .. #files .. " files in folder")
         for _, filePath in ipairs(files) do
-            print("[ThemeEditor] File: " .. filePath)
             local fileName = filePath:match("([^/\\]+)%.json$")
             if fileName and fileName ~= "Default" then
-                print("[ThemeEditor] Adding theme: " .. fileName)
                 table.insert(themes, fileName)
             end
         end
-    else
-        print("[ThemeEditor] Không thể list files")
     end
     
     table.sort(themes)
-    print("[ThemeEditor] Total themes: " .. #themes)
     return themes
 end
 
--- Hàm lưu theme vào file với tên cụ thể
 function ThemeEditor:SaveThemeAs(themeName)
     if not writefile or not themeName or themeName == "" then 
-        libNoti("❌ Vui lòng nhập tên theme!", 3)
+        libNoti("❌ Please enter theme name!", 3)
         return false 
     end
     
     local success, errorMsg = pcall(function()
-        -- Tạo folder nếu chưa tồn tại
         if makefolder and not isfolder(self.ConfigFolder) then
             makefolder(self.ConfigFolder)
-            print("[ThemeEditor] Created folder: " .. self.ConfigFolder)
         end
         
-        -- Cập nhật tên theme
         self.CurrentTheme.Name = themeName
         self.CurrentThemeName = themeName
         
-        -- Serialize theme (chuyển Color3 sang hex)
         local serializedTheme = SerializeTheme(self.CurrentTheme)
         
         local saveData = {
@@ -186,118 +163,85 @@ function ThemeEditor:SaveThemeAs(themeName)
         local themeData = HttpService:JSONEncode(saveData)
         local filePath = self.ConfigFolder .. "/" .. themeName .. ".json"
         
-        print("[ThemeEditor] Saving to: " .. filePath)
         writefile(filePath, themeData)
-        print("[ThemeEditor] Save successful!")
     end)
     
     if success then
-        libNoti("✅ Theme '" .. themeName .. "' đã được lưu!", 3)
-        -- Delay nhỏ để file system kịp cập nhật
+        libNoti("✅ Theme '" .. themeName .. "' saved!", 3)
         task.wait(0.2)
         
-        -- Refresh cả 2 dropdown
         local themes = self:GetThemeList()
         
-        -- Refresh dropdown chọn theme
         if self.DropdownRefs.ThemeList and self.DropdownRefs.ThemeList.SetValues then
             pcall(function()
                 self.DropdownRefs.ThemeList:SetValues(themes)
-                print("[ThemeEditor] Updated ThemeList dropdown")
             end)
         end
         
-        -- Refresh dropdown autoload
         if self.autoloadDropdownRef and self.autoloadDropdownRef.SetValues then
             pcall(function()
                 self.autoloadDropdownRef:SetValues(themes)
-                print("[ThemeEditor] Updated Autoload dropdown")
             end)
         end
     else
-        print("[ThemeEditor] Save error: " .. tostring(errorMsg))
-        libNoti("❌ Không thể lưu theme! Lỗi: " .. tostring(errorMsg), 5)
+        libNoti("❌ Failed to save theme! Error: " .. tostring(errorMsg), 5)
     end
     
     return success
 end
 
--- Hàm load theme từ tên
 function ThemeEditor:LoadThemeByName(themeName)
-    print("[ThemeEditor] LoadThemeByName called with: " .. tostring(themeName))
-    
     if themeName == "Default" then
-        print("[ThemeEditor] Loading Default theme")
         self:ResetToDefault()
         return true
     end
     
     if not (readfile and isfile) then 
-        print("[ThemeEditor] readfile or isfile not available")
         return false 
     end
     
     local filePath = self.ConfigFolder .. "/" .. themeName .. ".json"
-    print("[ThemeEditor] Checking file: " .. filePath)
     
     if not isfile(filePath) then
-        print("[ThemeEditor] File does not exist: " .. filePath)
-        libNoti("❌ Theme không tồn tại: " .. themeName, 3)
+        libNoti("❌ Theme does not exist: " .. themeName, 3)
         return false
     end
     
-    print("[ThemeEditor] File exists, attempting to load...")
-    
     local success, errorMsg = pcall(function()
         local themeData = readfile(filePath)
-        print("[ThemeEditor] File read successfully, length: " .. #themeData)
-        
         local loadedData = HttpService:JSONDecode(themeData)
-        print("[ThemeEditor] JSON decoded successfully")
         
         if loadedData then
-            -- Load theme colors và deserialize (chuyển hex sang Color3)
             if loadedData.CurrentTheme then
                 self.CurrentTheme = DeserializeTheme(loadedData.CurrentTheme)
-                print("[ThemeEditor] Theme colors loaded and deserialized")
             end
             
-            -- Load background settings
             if loadedData.BackgroundImage then
                 self.BackgroundImage = loadedData.BackgroundImage
-                print("[ThemeEditor] Background image loaded")
             end
             if loadedData.BackgroundImageTransparency ~= nil then
                 self.BackgroundImageTransparency = loadedData.BackgroundImageTransparency
-                print("[ThemeEditor] Background transparency loaded")
             end
             
             self.CurrentThemeName = themeName
-            print("[ThemeEditor] Applying theme...")
             self:ApplyTheme()
             self:ApplyBackgroundImage()
             self:UpdateAllUI()
-            print("[ThemeEditor] Theme applied successfully")
-        else
-            print("[ThemeEditor] loadedData is nil")
         end
     end)
     
     if success then
-        libNoti("✅ Theme '" .. themeName .. "' đã được tải!", 3)
-        print("[ThemeEditor] Load successful!")
+        libNoti("✅ Theme '" .. themeName .. "' loaded!", 3)
     else
-        print("[ThemeEditor] Load error: " .. tostring(errorMsg))
-        libNoti("❌ Không thể tải theme! Lỗi: " .. tostring(errorMsg), 5)
+        libNoti("❌ Failed to load theme! Error: " .. tostring(errorMsg), 5)
     end
     
     return success
 end
 
--- Hàm xóa theme
 function ThemeEditor:DeleteTheme(themeName)
     if themeName == "Default" then
-        libNoti("❌ Không thể xóa theme mặc định!", 3)
+        libNoti("❌ Cannot delete default theme!", 3)
         return false
     end
     
@@ -312,41 +256,32 @@ function ThemeEditor:DeleteTheme(themeName)
     end)
     
     if success then
-        libNoti("✅ Theme '" .. themeName .. "' đã được xóa!", 3)
+        libNoti("✅ Theme '" .. themeName .. "' deleted!", 3)
         self:RefreshThemeDropdown()
         
-        -- Nếu đang dùng theme bị xóa, chuyển về Default
         if self.CurrentThemeName == themeName then
             self:ResetToDefault()
         end
     else
-        libNoti("❌ Không thể xóa theme!", 3)
+        libNoti("❌ Failed to delete theme!", 3)
     end
     
     return success
 end
 
--- Hàm refresh dropdown
 function ThemeEditor:RefreshThemeDropdown()
-    print("[ThemeEditor] RefreshThemeDropdown called")
     local themes = self:GetThemeList()
     
-    if self.DropdownRefs.ThemeList then
-        if self.DropdownRefs.ThemeList.SetValues then
-            local success = pcall(function()
-                print("[ThemeEditor] Updating dropdown with " .. #themes .. " themes")
-                self.DropdownRefs.ThemeList:SetValues(themes)
-            end)
-            if success then
-                print("[ThemeEditor] Dropdown updated successfully")
-            else
-                print("[ThemeEditor] Failed to update dropdown")
-            end
-        else
-            print("[ThemeEditor] Dropdown không có SetValues method")
-        end
-    else
-        print("[ThemeEditor] DropdownRefs.ThemeList không tồn tại")
+    if self.DropdownRefs.ThemeList and self.DropdownRefs.ThemeList.SetValues then
+        pcall(function()
+            self.DropdownRefs.ThemeList:SetValues(themes)
+        end)
+    end
+    
+    if self.autoloadDropdownRef and self.autoloadDropdownRef.SetValues then
+        pcall(function()
+            self.autoloadDropdownRef:SetValues(themes)
+        end)
     end
     
     return themes
@@ -539,14 +474,11 @@ function ThemeEditor:CreatePresetThemes()
         }
     }
     
-    -- Lưu từng preset vào file
     for themeName, themeData in pairs(presets) do
         local filePath = self.ConfigFolder .. "/" .. themeName .. ".json"
         
-        -- Chỉ tạo nếu file chưa tồn tại (không ghi đè theme đã có)
         if not isfile or not isfile(filePath) then
-            local success = pcall(function()
-                -- Serialize theme data
+            pcall(function()
                 local serializedTheme = SerializeTheme(themeData)
                 
                 local saveData = {
@@ -556,19 +488,13 @@ function ThemeEditor:CreatePresetThemes()
                 }
                 local jsonData = HttpService:JSONEncode(saveData)
                 writefile(filePath, jsonData)
-                print("[ThemeEditor] Created preset: " .. themeName)
             end)
-            
-            if not success then
-                print("[ThemeEditor] Failed to create preset: " .. themeName)
-            end
         end
     end
     
     return true
 end
 
--- Hàm migrate config cũ sang hệ thống mới (deprecated)
 function ThemeEditor:MigrateOldConfig()
     if not (isfile and readfile and isfile(self.ConfigFile)) then
         return false
@@ -579,20 +505,17 @@ function ThemeEditor:MigrateOldConfig()
         local loadedData = HttpService:JSONDecode(themeData)
         
         if loadedData then
-            -- Migrate sang theme "MyTheme"
             self.CurrentTheme = loadedData.CurrentTheme or self.CurrentTheme
             self.BackgroundImage = loadedData.BackgroundImage or self.BackgroundImage
             self.BackgroundImageTransparency = loadedData.BackgroundImageTransparency or self.BackgroundImageTransparency
             
-            -- Lưu vào hệ thống mới
             self:SaveThemeAs("MyTheme")
             
-            -- Xóa file cũ
             if delfile then
                 delfile(self.ConfigFile)
             end
             
-            libNoti("✅ Đã chuyển theme cũ sang 'MyTheme'!", 3)
+            libNoti("✅ Migrated old theme to 'MyTheme'!", 3)
             return true
         end
     end)
@@ -600,13 +523,10 @@ function ThemeEditor:MigrateOldConfig()
     return success
 end
 
--- Hàm lưu theme vào file cũ (deprecated - giữ để backward compatibility)
 function ThemeEditor:SaveTheme()
-    -- Redirect sang SaveThemeAs với tên hiện tại
     return self:SaveThemeAs(self.CurrentThemeName or "MyTheme")
 end
 
--- Hàm load theme từ file (riêng biệt, không qua ConfigSystem)
 function ThemeEditor:LoadTheme()
     if not (isfile and readfile and isfile(self.ConfigFile)) then
         return false
@@ -617,12 +537,10 @@ function ThemeEditor:LoadTheme()
         local loadedData = HttpService:JSONDecode(themeData)
         
         if loadedData then
-            -- Load theme colors
             if loadedData.CurrentTheme then
                 self.CurrentTheme = loadedData.CurrentTheme
             end
             
-            -- Load background settings
             if loadedData.BackgroundImage then
                 self.BackgroundImage = loadedData.BackgroundImage
             end
@@ -637,47 +555,26 @@ function ThemeEditor:LoadTheme()
     end)
     
     if success then
-        libNoti("✅ Theme đã được tải!", 3)
+        libNoti("✅ Theme loaded!", 3)
     else
-        libNoti("❌ Không thể tải theme!", 3)
+        libNoti("❌ Failed to load theme!", 3)
     end
     
     return success
 end
 
--- Hàm áp dụng theme hiện tại
 function ThemeEditor:ApplyTheme()
-    local success, errorMsg = pcall(function()
-        print("[ThemeEditor] Applying theme: " .. tostring(self.CurrentTheme.Name))
-        
-        -- Tạo tên theme duy nhất để tránh conflict
+    local success = pcall(function()
         local uniqueName = "CustomTheme_" .. tick()
         self.CurrentTheme.Name = uniqueName
         
-        -- Xóa tất cả theme custom cũ
-        pcall(function()
-            for i = 1, 10 do
-                WindUI:RemoveTheme("CustomTheme_" .. i)
-            end
-        end)
-        
-        -- Thêm theme mới
         WindUI:AddTheme(self.CurrentTheme)
-        print("[ThemeEditor] Theme added with name: " .. uniqueName)
-        
-        -- Apply ngay lập tức
         WindUI:SetTheme(uniqueName)
-        print("[ThemeEditor] Theme set successfully")
         
-        -- Force refresh UI nếu có method
         if WindUI.RefreshTheme then
             WindUI:RefreshTheme()
         end
     end)
-    
-    if not success then
-        print("[ThemeEditor] ApplyTheme error: " .. tostring(errorMsg))
-    end
     
     return success
 end
@@ -694,19 +591,18 @@ function ThemeEditor:ApplyBackgroundImage()
     return success
 end
 
--- Hàm reset về theme Pastel Pink (theme mặc định của anya.lua)
 function ThemeEditor:ResetToDefault()
     self.CurrentTheme = {
         Name = "Pastel Pink",
-        Accent = Color3.fromHex("#FFB5D8"),  -- hồng pastel
-        Background = Color3.fromHex("#FAF0F5"),  -- trắng hồng nhạt
+        Accent = Color3.fromHex("#FFB5D8"),
+        Background = Color3.fromHex("#FAF0F5"),
         BackgroundTransparency = 0,
-        Outline = Color3.fromHex("#E8A5C8"),  -- hồng pastel đậm
-        Text = Color3.fromHex("#8B4F7D"),  -- tím đậm
-        Placeholder = Color3.fromHex("#C89FB8"),  -- hồng tím pastel
-        Button = Color3.fromHex("#F0B8D8"),  -- hồng pastel
-        Icon = Color3.fromHex("#E89DC8"),  -- hồng pastel
-        Hover = Color3.fromHex("#FFC9E5"),  -- hồng pastel sáng
+        Outline = Color3.fromHex("#E8A5C8"),
+        Text = Color3.fromHex("#8B4F7D"),
+        Placeholder = Color3.fromHex("#C89FB8"),
+        Button = Color3.fromHex("#F0B8D8"),
+        Icon = Color3.fromHex("#E89DC8"),
+        Hover = Color3.fromHex("#FFC9E5"),
         WindowBackground = Color3.fromHex("#FAF0F5"),
         WindowShadow = Color3.fromHex("#E8A5C8"),
         DialogBackground = Color3.fromHex("#F5E6F0"),
@@ -738,7 +634,7 @@ function ThemeEditor:ResetToDefault()
     self:ApplyTheme()
     self:ApplyBackgroundImage()
     self:UpdateAllUI()
-    libNoti("✅ Đã reset về theme Pastel Pink!", 3)
+    libNoti("✅ Reset to Pastel Pink theme!", 3)
 end
 
 -- Hàm cập nhật tất cả UI elements sau khi load
@@ -786,7 +682,6 @@ function ThemeEditor:UpdateColorpickerUI()
     end
 end
 
--- ==================== UI CREATION ====================
 local function createThemeEditorTab()
     local ThemeTab = Window:Tab({
         Title = "Theme Editor",
@@ -797,16 +692,15 @@ local function createThemeEditorTab()
     ThemeTab:Section({ Title = "🎨 Theme Editor" })
     
     ThemeTab:Paragraph({
-        Title = "ℹ️ Hướng Dẫn",
-        Description = "• Chỉnh màu sắc cho từng thành phần\n• Áp dụng để xem trước\n• Lưu theme để dùng lại sau\n• Load để tải theme đã lưu"
+        Title = "ℹ️ Instructions",
+        Description = "• Customize colors for each component\n• Apply to preview changes\n• Save theme to reuse later\n• Load to restore saved themes"
     })
     
-    ThemeTab:Divider({ Text = "🎨 Màu Sắc Cơ Bản" })
+    ThemeTab:Divider({ Text = "🎨 Basic Colors" })
     
-    -- Accent
     ThemeEditor.ColorpickerRefs.Accent = ThemeTab:Colorpicker({
         Title = "Accent",
-        Description = "Màu nhấn mạnh chính",
+        Description = "Primary accent color",
         Color = ThemeEditor.CurrentTheme.Accent,
         Callback = function(color) 
             ThemeEditor.CurrentTheme.Accent = color 
@@ -814,10 +708,9 @@ local function createThemeEditorTab()
         end
     })
     
-    -- Background
     ThemeEditor.ColorpickerRefs.Background = ThemeTab:Colorpicker({
         Title = "Background",
-        Description = "Màu nền chính",
+        Description = "Main background color",
         Color = ThemeEditor.CurrentTheme.Background,
         Callback = function(color) 
             ThemeEditor.CurrentTheme.Background = color 
@@ -825,10 +718,9 @@ local function createThemeEditorTab()
         end
     })
     
-    -- Outline
     ThemeEditor.ColorpickerRefs.Outline = ThemeTab:Colorpicker({
         Title = "Outline",
-        Description = "Màu viền",
+        Description = "Border color",
         Color = ThemeEditor.CurrentTheme.Outline,
         Callback = function(color) 
             ThemeEditor.CurrentTheme.Outline = color 
@@ -836,10 +728,9 @@ local function createThemeEditorTab()
         end
     })
     
-    -- Text
     ThemeEditor.ColorpickerRefs.Text = ThemeTab:Colorpicker({
         Title = "Text",
-        Description = "Màu chữ chính",
+        Description = "Main text color",
         Color = ThemeEditor.CurrentTheme.Text,
         Callback = function(color) 
             ThemeEditor.CurrentTheme.Text = color 
@@ -847,10 +738,9 @@ local function createThemeEditorTab()
         end
     })
     
-    -- Placeholder
     ThemeEditor.ColorpickerRefs.Placeholder = ThemeTab:Colorpicker({
         Title = "Placeholder",
-        Description = "Màu chữ placeholder",
+        Description = "Placeholder text color",
         Color = ThemeEditor.CurrentTheme.Placeholder,
         Callback = function(color) 
             ThemeEditor.CurrentTheme.Placeholder = color 
@@ -858,10 +748,9 @@ local function createThemeEditorTab()
         end
     })
     
-    -- Button
     ThemeEditor.ColorpickerRefs.Button = ThemeTab:Colorpicker({
         Title = "Button",
-        Description = "Màu nút bấm",
+        Description = "Button color",
         Color = ThemeEditor.CurrentTheme.Button,
         Callback = function(color) 
             ThemeEditor.CurrentTheme.Button = color 
@@ -869,10 +758,9 @@ local function createThemeEditorTab()
         end
     })
     
-    -- Icon
     ThemeEditor.ColorpickerRefs.Icon = ThemeTab:Colorpicker({
         Title = "Icon",
-        Description = "Màu icon",
+        Description = "Icon color",
         Color = ThemeEditor.CurrentTheme.Icon,
         Callback = function(color) 
             ThemeEditor.CurrentTheme.Icon = color 
@@ -880,10 +768,9 @@ local function createThemeEditorTab()
         end
     })
     
-    -- Hover
     ThemeEditor.ColorpickerRefs.Hover = ThemeTab:Colorpicker({
         Title = "Hover",
-        Description = "Màu khi hover",
+        Description = "Hover state color",
         Color = ThemeEditor.CurrentTheme.Hover,
         Callback = function(color) 
             ThemeEditor.CurrentTheme.Hover = color 
@@ -893,188 +780,166 @@ local function createThemeEditorTab()
     
     ThemeTab:Divider({ Text = "🪟 Window" })
     
-    -- WindowBackground
     ThemeEditor.ColorpickerRefs.WindowBackground = ThemeTab:Colorpicker({
         Title = "Window Background",
-        Description = "Màu nền cửa sổ",
+        Description = "Window background color",
         Color = ThemeEditor.CurrentTheme.WindowBackground,
         Callback = function(color) ThemeEditor.CurrentTheme.WindowBackground = color; ThemeEditor:ApplyTheme() end
     })
     
-    -- WindowShadow
     ThemeEditor.ColorpickerRefs.WindowShadow = ThemeTab:Colorpicker({
         Title = "Window Shadow",
-        Description = "Màu bóng đổ cửa sổ",
+        Description = "Window shadow color",
         Color = ThemeEditor.CurrentTheme.WindowShadow,
         Callback = function(color) ThemeEditor.CurrentTheme.WindowShadow = color; ThemeEditor:ApplyTheme() end
     })
     
-    -- WindowTopbarButtonIcon
     ThemeEditor.ColorpickerRefs.WindowTopbarButtonIcon = ThemeTab:Colorpicker({
         Title = "Window Topbar Button Icon",
-        Description = "Màu icon nút trên thanh topbar",
+        Description = "Topbar button icon color",
         Color = ThemeEditor.CurrentTheme.WindowTopbarButtonIcon,
         Callback = function(color) ThemeEditor.CurrentTheme.WindowTopbarButtonIcon = color; ThemeEditor:ApplyTheme() end
     })
     
-    -- WindowTopbarTitle
     ThemeEditor.ColorpickerRefs.WindowTopbarTitle = ThemeTab:Colorpicker({
         Title = "Window Topbar Title",
-        Description = "Màu tiêu đề topbar",
+        Description = "Topbar title color",
         Color = ThemeEditor.CurrentTheme.WindowTopbarTitle,
         Callback = function(color) ThemeEditor.CurrentTheme.WindowTopbarTitle = color; ThemeEditor:ApplyTheme() end
     })
     
-    -- WindowTopbarAuthor
     ThemeEditor.ColorpickerRefs.WindowTopbarAuthor = ThemeTab:Colorpicker({
         Title = "Window Topbar Author",
-        Description = "Màu tên tác giả topbar",
+        Description = "Topbar author name color",
         Color = ThemeEditor.CurrentTheme.WindowTopbarAuthor,
         Callback = function(color) ThemeEditor.CurrentTheme.WindowTopbarAuthor = color; ThemeEditor:ApplyTheme() end
     })
     
-    -- WindowTopbarIcon
     ThemeEditor.ColorpickerRefs.WindowTopbarIcon = ThemeTab:Colorpicker({
         Title = "Window Topbar Icon",
-        Description = "Màu icon topbar",
+        Description = "Topbar icon color",
         Color = ThemeEditor.CurrentTheme.WindowTopbarIcon,
         Callback = function(color) ThemeEditor.CurrentTheme.WindowTopbarIcon = color; ThemeEditor:ApplyTheme() end
     })
     
     ThemeTab:Divider({ Text = "💬 Dialog" })
     
-    -- DialogBackground
     ThemeEditor.ColorpickerRefs.DialogBackground = ThemeTab:Colorpicker({
         Title = "Dialog Background",
-        Description = "Màu nền hộp thoại",
+        Description = "Dialog background color",
         Color = ThemeEditor.CurrentTheme.DialogBackground,
         Callback = function(color) ThemeEditor.CurrentTheme.DialogBackground = color; ThemeEditor:ApplyTheme() end
     })
     
-    -- DialogTitle
     ThemeEditor.ColorpickerRefs.DialogTitle = ThemeTab:Colorpicker({
         Title = "Dialog Title",
-        Description = "Màu tiêu đề dialog",
+        Description = "Dialog title color",
         Color = ThemeEditor.CurrentTheme.DialogTitle,
         Callback = function(color) ThemeEditor.CurrentTheme.DialogTitle = color; ThemeEditor:ApplyTheme() end
     })
     
-    -- DialogContent
     ThemeEditor.ColorpickerRefs.DialogContent = ThemeTab:Colorpicker({
         Title = "Dialog Content",
-        Description = "Màu nội dung dialog",
+        Description = "Dialog content color",
         Color = ThemeEditor.CurrentTheme.DialogContent,
         Callback = function(color) ThemeEditor.CurrentTheme.DialogContent = color; ThemeEditor:ApplyTheme() end
     })
     
-    -- DialogIcon
     ThemeEditor.ColorpickerRefs.DialogIcon = ThemeTab:Colorpicker({
         Title = "Dialog Icon",
-        Description = "Màu icon dialog",
+        Description = "Dialog icon color",
         Color = ThemeEditor.CurrentTheme.DialogIcon,
         Callback = function(color) ThemeEditor.CurrentTheme.DialogIcon = color; ThemeEditor:ApplyTheme() end
     })
     
     ThemeTab:Divider({ Text = "📑 Tab" })
     
-    -- TabBackground
     ThemeEditor.ColorpickerRefs.TabBackground = ThemeTab:Colorpicker({
         Title = "Tab Background",
-        Description = "Màu nền tab",
+        Description = "Tab background color",
         Color = ThemeEditor.CurrentTheme.TabBackground,
         Callback = function(color) ThemeEditor.CurrentTheme.TabBackground = color; ThemeEditor:ApplyTheme() end
     })
     
-    -- TabTitle
     ThemeEditor.ColorpickerRefs.TabTitle = ThemeTab:Colorpicker({
         Title = "Tab Title",
-        Description = "Màu tiêu đề tab",
+        Description = "Tab title color",
         Color = ThemeEditor.CurrentTheme.TabTitle,
         Callback = function(color) ThemeEditor.CurrentTheme.TabTitle = color; ThemeEditor:ApplyTheme() end
     })
     
-    -- TabIcon
     ThemeEditor.ColorpickerRefs.TabIcon = ThemeTab:Colorpicker({
         Title = "Tab Icon",
-        Description = "Màu icon tab",
+        Description = "Tab icon color",
         Color = ThemeEditor.CurrentTheme.TabIcon,
         Callback = function(color) ThemeEditor.CurrentTheme.TabIcon = color; ThemeEditor:ApplyTheme() end
     })
     
     ThemeTab:Divider({ Text = "🔧 Element" })
     
-    -- ElementBackground
     ThemeEditor.ColorpickerRefs.ElementBackground = ThemeTab:Colorpicker({
         Title = "Element Background",
-        Description = "Màu nền element",
+        Description = "Element background color",
         Color = ThemeEditor.CurrentTheme.ElementBackground,
         Callback = function(color) ThemeEditor.CurrentTheme.ElementBackground = color; ThemeEditor:ApplyTheme() end
     })
     
-    -- ElementTitle
     ThemeEditor.ColorpickerRefs.ElementTitle = ThemeTab:Colorpicker({
         Title = "Element Title",
-        Description = "Màu tiêu đề element",
+        Description = "Element title color",
         Color = ThemeEditor.CurrentTheme.ElementTitle,
         Callback = function(color) ThemeEditor.CurrentTheme.ElementTitle = color; ThemeEditor:ApplyTheme() end
     })
     
-    -- ElementDesc
     ThemeEditor.ColorpickerRefs.ElementDesc = ThemeTab:Colorpicker({
         Title = "Element Description",
-        Description = "Màu mô tả element",
+        Description = "Element description color",
         Color = ThemeEditor.CurrentTheme.ElementDesc,
         Callback = function(color) ThemeEditor.CurrentTheme.ElementDesc = color; ThemeEditor:ApplyTheme() end
     })
     
-    -- ElementIcon
     ThemeEditor.ColorpickerRefs.ElementIcon = ThemeTab:Colorpicker({
         Title = "Element Icon",
-        Description = "Màu icon element",
+        Description = "Element icon color",
         Color = ThemeEditor.CurrentTheme.ElementIcon,
         Callback = function(color) ThemeEditor.CurrentTheme.ElementIcon = color; ThemeEditor:ApplyTheme() end
     })
     
     ThemeTab:Divider({ Text = "🔔 Popup" })
     
-    -- PopupBackground
     ThemeEditor.ColorpickerRefs.PopupBackground = ThemeTab:Colorpicker({
         Title = "Popup Background",
-        Description = "Màu nền popup",
+        Description = "Popup background color",
         Color = ThemeEditor.CurrentTheme.PopupBackground,
         Callback = function(color) ThemeEditor.CurrentTheme.PopupBackground = color; ThemeEditor:ApplyTheme() end
     })
     
-    -- PopupTitle
     ThemeEditor.ColorpickerRefs.PopupTitle = ThemeTab:Colorpicker({
         Title = "Popup Title",
-        Description = "Màu tiêu đề popup",
+        Description = "Popup title color",
         Color = ThemeEditor.CurrentTheme.PopupTitle,
         Callback = function(color) ThemeEditor.CurrentTheme.PopupTitle = color; ThemeEditor:ApplyTheme() end
     })
     
-    -- PopupContent
     ThemeEditor.ColorpickerRefs.PopupContent = ThemeTab:Colorpicker({
         Title = "Popup Content",
-        Description = "Màu nội dung popup",
+        Description = "Popup content color",
         Color = ThemeEditor.CurrentTheme.PopupContent,
         Callback = function(color) ThemeEditor.CurrentTheme.PopupContent = color; ThemeEditor:ApplyTheme() end
     })
     
-    -- PopupIcon
     ThemeEditor.ColorpickerRefs.PopupIcon = ThemeTab:Colorpicker({
         Title = "Popup Icon",
-        Description = "Màu icon popup",
+        Description = "Popup icon color",
         Color = ThemeEditor.CurrentTheme.PopupIcon,
         Callback = function(color) ThemeEditor.CurrentTheme.PopupIcon = color; ThemeEditor:ApplyTheme() end
     })
     
-    ThemeTab:Divider({ Text = "⚪ Độ Trong Suốt" })
+    ThemeTab:Divider({ Text = "⚪ Transparency" })
     
-    -- Slider cho Background Transparency
     ThemeTab:Slider({
         Title = "Background Transparency",
-        Description = "Độ trong suốt nền chính",
+        Description = "Main background transparency",
         Step = 0.01,
         Value = {
             Min = 0,
@@ -1086,10 +951,9 @@ local function createThemeEditorTab()
         end
     })
     
-    -- Slider cho Dialog Background Transparency
     ThemeTab:Slider({
         Title = "Dialog Background Transparency",
-        Description = "Độ trong suốt nền dialog",
+        Description = "Dialog background transparency",
         Step = 0.01,
         Value = {
             Min = 0,
@@ -1101,10 +965,9 @@ local function createThemeEditorTab()
         end
     })
     
-    -- Slider cho Popup Background Transparency
     ThemeTab:Slider({
         Title = "Popup Background Transparency",
-        Description = "Độ trong suốt nền popup",
+        Description = "Popup background transparency",
         Step = 0.01,
         Value = {
             Min = 0,
@@ -1116,39 +979,34 @@ local function createThemeEditorTab()
         end
     })
     
-    ThemeTab:Divider({ Text = "Quản Lý Theme" })
+    ThemeTab:Divider({ Text = "Theme Management" })
     
-    -- Paragraph hiển thị autoload theme
     local AutoloadThemeParagraph = ThemeTab:Paragraph({
         Title = "🚀 Current Autoload Theme",
         Description = "None"
     })
     
-    -- Paragraph hướng dẫn
     ThemeTab:Paragraph({
-        Title = "ℹ️ Cách Sử dụng",
-        Description = "• Nhập tên theme MỚI hoặc chọn từ dropdown\n• Lưu: Lưu theme hiện tại\n• Load: Tải theme đã chọn\n• Xóa: Xóa theme đã chọn\n• Áp Dụng: Xem trước ngay lập tức"
+        Title = "ℹ️ How to Use",
+        Description = "• Enter NEW theme name or select from dropdown\n• Save: Save current theme\n• Load: Load selected theme\n• Delete: Delete selected theme\n• Apply: Preview changes instantly"
     })
     
-    -- Biến lưu tên theme và theme đã chọn
     local newThemeName = ""
     local selectedTheme = "Default"
     
-    -- Input để nhập tên theme mới
     ThemeTab:Input({
-        Title = "Tên Theme Mới",
-        Description = "Nhập tên để lưu theme mới",
-        Placeholder = "VD: MyTheme",
+        Title = "New Theme Name",
+        Description = "Enter name to save new theme",
+        Placeholder = "E.g.: MyTheme",
         Value = "",
         Callback = function(value)
             newThemeName = value
         end
     })
     
-    -- Dropdown chọn theme đã lưu
     local themeDropdown = ThemeTab:Dropdown({
-        Title = "Chọn Theme Đã Lưu",
-        Description = "Chọn theme để load hoặc xóa",
+        Title = "Select Saved Theme",
+        Description = "Choose theme to load or delete",
         Values = ThemeEditor:GetThemeList(),
         Multi = false,
         Callback = function(value)
@@ -1157,10 +1015,9 @@ local function createThemeEditorTab()
     })
     ThemeEditor.DropdownRefs.ThemeList = themeDropdown
     
-    -- Dropdown chọn autoload theme
     ThemeEditor.autoloadDropdownRef = ThemeTab:Dropdown({
         Title = "🚀 Select Autoload Theme",
-        Description = "Theme này sẽ tự động load khi script khởi động",
+        Description = "This theme will auto-load when script starts",
         Values = ThemeEditor:GetThemeList(),
         Multi = false,
         Callback = function(selected)
@@ -1168,91 +1025,82 @@ local function createThemeEditorTab()
                 ThemeEditor.autoloadTheme = selected
                 AutoloadThemeParagraph:SetDesc("🚀 " .. selected)
                 
-                -- Lưu vào file _autoload.txt
                 local autoloadFile = ThemeEditor.ConfigFolder .. "/_autoload.txt"
                 if makefolder and not isfolder(ThemeEditor.ConfigFolder) then
                     makefolder(ThemeEditor.ConfigFolder)
                 end
                 
-                local success = pcall(function()
+                pcall(function()
                     writefile(autoloadFile, selected)
+                    libNoti("✅ Theme '" .. selected .. "' will auto-load on startup!", 4)
                 end)
-                
-                if success then
-                    libNoti("✅ Theme '" .. selected .. "' sẽ tự động load khi khởi động!", 4)
-                else
-                    libNoti("❌ Không thể lưu autoload setting!", 3)
-                end
             end
         end
     })
     
-    -- Hàng button 1
     ThemeTab:Button({
-        Title = "💾 Lưu Theme",
-        Description = "Lưu theme với tên đã nhập",
+        Title = "💾 Save Theme",
+        Description = "Save theme with entered name",
         Callback = function()
             if newThemeName and newThemeName ~= "" then
                 ThemeEditor:SaveThemeAs(newThemeName)
-                newThemeName = ""  -- Clear sau khi lưu
+                newThemeName = ""
             else
-                libNoti("❌ Vui lòng nhập tên theme!", 3)
+                libNoti("❌ Please enter theme name!", 3)
             end
         end
     })
     
     ThemeTab:Button({
         Title = "📂 Load Theme",
-        Description = "Tải theme đã chọn từ dropdown",
+        Description = "Load selected theme from dropdown",
         Callback = function()
             if selectedTheme and selectedTheme ~= "" then
                 ThemeEditor:LoadThemeByName(selectedTheme)
             else
-                libNoti("❌ Vui lòng chọn theme từ dropdown!", 3)
+                libNoti("❌ Please select theme from dropdown!", 3)
             end
         end
     })
     
     ThemeTab:Button({
-        Title = "🗑️ Xóa Theme",
-        Description = "Xóa theme đã chọn",
+        Title = "🗑️ Delete Theme",
+        Description = "Delete selected theme",
         Callback = function()
             if selectedTheme and selectedTheme ~= "" then
                 ThemeEditor:DeleteTheme(selectedTheme)
             else
-                libNoti("❌ Vui lòng chọn theme từ dropdown!", 3)
+                libNoti("❌ Please select theme from dropdown!", 3)
             end
         end
     })
     
     ThemeTab:Button({
         Title = "🔄 Refresh Dropdown",
-        Description = "Làm mới danh sách theme",
+        Description = "Refresh theme list",
         Callback = function()
             ThemeEditor:RefreshThemeDropdown()
-            libNoti("✅ Đã refresh danh sách theme!", 2)
+            libNoti("✅ Theme list refreshed!", 2)
         end
     })
     
-    ThemeTab:Divider({ Text = "Điều Khiển Nhanh" })
+    ThemeTab:Divider({ Text = "Quick Controls" })
     
-    -- Button Áp Dụng
     ThemeTab:Button({
-        Title = "✨ Áp Dụng Theme Ngay",
-        Description = "Áp dụng theme hiện tại để xem trước",
+        Title = "✨ Apply Theme Now",
+        Description = "Apply current theme to preview",
         Callback = function()
             if ThemeEditor:ApplyTheme() then
-                libNoti("✅ Theme đã được áp dụng!", 2)
+                libNoti("✅ Theme applied!", 2)
             else
-                libNoti("❌ Không thể áp dụng theme!", 3)
+                libNoti("❌ Failed to apply theme!", 3)
             end
         end
     })
     
-    -- Button Reset
     ThemeTab:Button({
-        Title = "🔄 Reset Về Pastel Pink",
-        Description = "Đặt lại theme về Pastel Pink (theme mặc định)",
+        Title = "🔄 Reset to Pastel Pink",
+        Description = "Reset theme to Pastel Pink (default)",
         Callback = function()
             ThemeEditor:ResetToDefault()
         end
@@ -1260,10 +1108,9 @@ local function createThemeEditorTab()
     
     ThemeTab:Divider({ Text = "Background Image" })
     
-    -- Input cho Background Image Asset ID
     local bgImageInput = ThemeTab:Input({
         Title = "Background Image Asset ID",
-        Description = "Nhập Asset ID của hình nền (rbxassetid://...)",
+        Description = "Enter background image Asset ID (rbxassetid://...)",
         Placeholder = "rbxassetid://127375677813832",
         Value = ThemeEditor.BackgroundImage,
         Callback = function(value)
@@ -1274,10 +1121,9 @@ local function createThemeEditorTab()
     })
     ThemeEditor.InputRefs.BackgroundImage = bgImageInput
     
-    -- Slider cho Background Image Transparency
     local bgImgTransSlider = ThemeTab:Slider({
-        Title = "Độ Trong Suốt Hình Nền",
-        Description = "Điều chỉnh độ trong suốt của hình nền",
+        Title = "Background Image Transparency",
+        Description = "Adjust background image transparency",
         Step = 0.01,
         Value = {
             Min = 0,
@@ -1290,38 +1136,36 @@ local function createThemeEditorTab()
     })
     ThemeEditor.SliderRefs.BackgroundImageTransparency = bgImgTransSlider
     
-    -- Button áp dụng Background Image
     ThemeTab:Button({
-        Title = "🖼️ Áp Dụng Background Image",
-        Description = "Áp dụng hình nền mới",
+        Title = "🖼️ Apply Background Image",
+        Description = "Apply new background image",
         Callback = function()
             if ThemeEditor:ApplyBackgroundImage() then
-                libNoti("✅ Hình nền đã được áp dụng!", 2)
+                libNoti("✅ Background image applied!", 2)
             else
-                libNoti("❌ Không thể áp dụng hình nền!", 3)
+                libNoti("❌ Failed to apply background image!", 3)
             end
         end
     })
     ThemeTab:Button({
-        Title = "❌ Xóa Hình Nền",
-        Description = "Tắt hình nền (chỉ dùng màu)",
+        Title = "❌ Remove Background",
+        Description = "Disable background (use colors only)",
         Callback = function()
             ThemeEditor.BackgroundImage = ""
             ThemeEditor.BackgroundImageTransparency = 1
             ThemeEditor:ApplyBackgroundImage()
             ThemeEditor:UpdateAllUI()
-            libNoti("✅ Đã tắt hình nền!", 2)
+            libNoti("✅ Background removed!", 2)
         end
     })
     
     ThemeTab:Divider({ Text = "Preset Themes" })
     
     ThemeTab:Paragraph({
-        Title = "📦 Theme Có Sẵn",
-        Description = "5 theme preset đã được tự động tạo sẵn:\n• Dark Mode\n• Light Mode\n• Cyberpunk\n• Forest\n• Ocean\n\nBạn có thể chọn từ dropdown ở trên để load hoặc set autoload."
+        Title = "📦 Available Themes",
+        Description = "5 preset themes auto-generated:\n• Dark Mode\n• Light Mode\n• Cyberpunk\n• Forest\n• Ocean\n\nSelect from dropdown above to load or set autoload."
     })
     
-    -- Load autoload theme setting từ file
     local autoloadFile = ThemeEditor.ConfigFolder .. "/_autoload.txt"
     if isfile and isfile(autoloadFile) then
         local success, autoloadThemeName = pcall(function()
@@ -1330,46 +1174,34 @@ local function createThemeEditorTab()
         if success and autoloadThemeName and autoloadThemeName ~= "" then
             ThemeEditor.autoloadTheme = autoloadThemeName
             AutoloadThemeParagraph:SetDesc("🚀 " .. autoloadThemeName)
-            print("[ThemeEditor] Autoload theme set to: " .. autoloadThemeName)
         end
     end
     
-    -- Load theme khi khởi động tab
     task.spawn(function()
         task.wait(0.5)
-        -- Tự động migrate config cũ nếu có
         ThemeEditor:MigrateOldConfig()
-        -- Refresh danh sách theme
         ThemeEditor:RefreshThemeDropdown()
     end)
 end
 
--- ==================== INIT MODULE ====================
 function Module:Init()
-    -- Set ConfigFile với PlayerName
     if PlayerLocal and PlayerLocal.Name then
         ThemeEditor.ConfigFile = "AnyaHub_ThemeConfig_" .. PlayerLocal.Name .. ".txt"
     end
     
-    -- ✅ TẠO PRESET THEMES TRƯỚC KHI TẠO UI
     task.spawn(function()
         ThemeEditor:CreatePresetThemes()
-        print("[ThemeEditor] Preset themes created")
     end)
     
-    -- Tự động migrate config cũ và load theme trước khi tạo tab
     task.spawn(function()
         task.wait(0.3)
-        -- Migrate config cũ (nếu có)
         ThemeEditor:MigrateOldConfig()
     end)
     
-    -- Tạo tab UI
     createThemeEditorTab()
     
-    -- ✅ AUTO-LOAD THEME
     task.spawn(function()
-        task.wait(1)  -- Đợi UI load xong
+        task.wait(1)
         
         local autoloadFile = ThemeEditor.ConfigFolder .. "/_autoload.txt"
         if isfile and isfile(autoloadFile) then
@@ -1378,18 +1210,10 @@ function Module:Init()
             end)
             
             if success and themeToLoad and themeToLoad ~= "" then
-                print("[ThemeEditor] Auto-loading theme: " .. themeToLoad)
-                
-                -- Load theme
                 if ThemeEditor:LoadThemeByName(themeToLoad) then
                     libNoti("🎨 Auto-loaded theme: " .. themeToLoad, 4)
-                    print("[ThemeEditor] Auto-load successful!")
-                else
-                    print("[ThemeEditor] Auto-load failed for: " .. themeToLoad)
                 end
             end
-        else
-            print("[ThemeEditor] No autoload theme file found")
         end
     end)
 end
