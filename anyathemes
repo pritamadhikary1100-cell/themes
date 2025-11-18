@@ -1,6 +1,6 @@
 -- ==================== THEME EDITOR MODULE ====================
 -- Loaded from GitHub: Custom theme creation and management system
--- Requirements: WindUI, global variables from main scriptxxxxxxxxxxxxxxxxx
+-- Requirements: WindUI, global variables from main script
 -- ==============================================================
 
 local Module = {}
@@ -78,6 +78,42 @@ local function libNoti(msg, duration)
     })
 end
 
+-- Hàm chuyển Color3 sang hex string
+local function Color3ToHex(color)
+    if not color then return "#000000" end
+    return string.format("#%02x%02x%02x", 
+        math.floor(color.R * 255),
+        math.floor(color.G * 255),
+        math.floor(color.B * 255)
+    )
+end
+
+-- Hàm chuyển theme sang format có thể serialize
+local function SerializeTheme(theme)
+    local serialized = {}
+    for key, value in pairs(theme) do
+        if typeof(value) == "Color3" then
+            serialized[key] = Color3ToHex(value)
+        else
+            serialized[key] = value
+        end
+    end
+    return serialized
+end
+
+-- Hàm chuyển theme từ format serialized về Color3
+local function DeserializeTheme(serialized)
+    local theme = {}
+    for key, value in pairs(serialized) do
+        if type(value) == "string" and value:match("^#%x%x%x%x%x%x$") then
+            theme[key] = Color3.fromHex(value)
+        else
+            theme[key] = value
+        end
+    end
+    return theme
+end
+
 -- ==================== THEME FUNCTIONS ====================
 -- Hàm lấy danh sách theme đã lưu
 function ThemeEditor:GetThemeList()
@@ -139,8 +175,11 @@ function ThemeEditor:SaveThemeAs(themeName)
         self.CurrentTheme.Name = themeName
         self.CurrentThemeName = themeName
         
+        -- Serialize theme (chuyển Color3 sang hex)
+        local serializedTheme = SerializeTheme(self.CurrentTheme)
+        
         local saveData = {
-            CurrentTheme = self.CurrentTheme,
+            CurrentTheme = serializedTheme,
             BackgroundImage = self.BackgroundImage,
             BackgroundImageTransparency = self.BackgroundImageTransparency
         }
@@ -217,10 +256,10 @@ function ThemeEditor:LoadThemeByName(themeName)
         print("[ThemeEditor] JSON decoded successfully")
         
         if loadedData then
-            -- Load theme colors
+            -- Load theme colors và deserialize (chuyển hex sang Color3)
             if loadedData.CurrentTheme then
-                self.CurrentTheme = loadedData.CurrentTheme
-                print("[ThemeEditor] Theme colors loaded")
+                self.CurrentTheme = DeserializeTheme(loadedData.CurrentTheme)
+                print("[ThemeEditor] Theme colors loaded and deserialized")
             end
             
             -- Load background settings
@@ -507,8 +546,11 @@ function ThemeEditor:CreatePresetThemes()
         -- Chỉ tạo nếu file chưa tồn tại (không ghi đè theme đã có)
         if not isfile or not isfile(filePath) then
             local success = pcall(function()
+                -- Serialize theme data
+                local serializedTheme = SerializeTheme(themeData)
+                
                 local saveData = {
-                    CurrentTheme = themeData,
+                    CurrentTheme = serializedTheme,
                     BackgroundImage = "rbxassetid://127375677813832",
                     BackgroundImageTransparency = 0.5
                 }
