@@ -1,5 +1,5 @@
 -- ==================== THEME EDITOR MODULE ====================
--- Loaded from GitHub: Custom theme creation and management systemccccccccccccc
+-- Loaded from GitHub: Custom theme creation and management system
 -- Requirements: WindUI, global variables from main script
 -- ==============================================================
 
@@ -230,11 +230,6 @@ function ThemeEditor:LoadThemeByName(themeName)
         end
     end)
     
-    if success then
-        libNoti("✅ Theme '" .. themeName .. "' loaded!", 3)
-    else
-        libNoti("❌ Failed to load theme! Error: " .. tostring(errorMsg), 5)
-    end
     
     return success
 end
@@ -543,7 +538,6 @@ function ThemeEditor:MigrateOldConfig()
                 delfile(self.ConfigFile)
             end
             
-            libNoti("✅ Migrated old theme to 'MyTheme'!", 3)
             return true
         end
     end)
@@ -581,12 +575,6 @@ function ThemeEditor:LoadTheme()
             self:UpdateAllUI()
         end
     end)
-    
-    if success then
-        libNoti("✅ Theme loaded!", 3)
-    else
-        libNoti("❌ Failed to load theme!", 3)
-    end
     
     return success
 end
@@ -1239,7 +1227,6 @@ function Module:Init()
             
             if success and themeToLoad and themeToLoad ~= "" then
                 if ThemeEditor:LoadThemeByName(themeToLoad) then
-                    libNoti("🎨 Auto-loaded theme: " .. themeToLoad, 4)
                 end
             end
         end
