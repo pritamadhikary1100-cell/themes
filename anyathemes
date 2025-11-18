@@ -1,5 +1,5 @@
 -- ==================== THEME EDITOR MODULE ====================
--- Loaded from GitHub: Custom theme creation and management system
+-- Loaded from GitHub: Custom theme creation and madnagement system
 -- Requirements: WindUI, global variables from main script
 -- ==============================================================
 
@@ -417,16 +417,9 @@ function ThemeEditor:UpdateAllUI()
                 if key == "BackgroundImageTransparency" then
                     slider:SetValue(self.BackgroundImageTransparency)
                 end
-        PopupBackground = Color3.fromHex("#101010"),
-        PopupBackgroundTransparency = 0,
-        PopupTitle = Color3.fromHex("#FFFFFF"),
-        PopupContent = Color3.fromHex("#FFFFFF"),
-        PopupIcon = Color3.fromHex("#a1a1aa")
-    }
-    
-    self:ApplyTheme()
-    self:UpdateColorpickerUI()
-    libNoti("✅ Đã reset về theme mặc định!", 3)
+            end)
+        end
+    end
 end
 
 -- Hàm cập nhật UI colorpicker sau khi load
