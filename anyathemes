@@ -1,5 +1,5 @@
 -- ==================== THEME EDITOR MODULE ====================
--- Loaded from GitHub: Custom theme creation and management systxem
+-- Loaded from GitHub: Custom theme creation and management system
 -- Requirements: WindUI, global variables from main script
 -- ==============================================================
 
@@ -11,9 +11,8 @@ local warn = function(...) end
 -- ✅ Lấy các biến cần thiết từ file chính
 local WindUI = _G.WindUI
 local Window = _G.Window
-local c = _G.PlayerLocal
-local e = _G.HttpService
-local ConfigSystem = _G.ConfigSystem
+local PlayerLocal = _G.PlayerLocal
+local HttpService = _G.HttpService
 
 -- ==================== THEME EDITOR GLOBALS ====================
 local ThemeEditor = {
@@ -63,7 +62,7 @@ local ThemeEditor = {
     DropdownRefs = {},
     -- Config folder và file riêng (không lưu qua ConfigSystem chung)
     ConfigFolder = "AnyaHub_Themes",
-    ConfigFile = "AnyaHub_ThemeConfig_" .. c.Name .. ".txt",
+    ConfigFile = "",  -- Sẽ set trong Init()
     CurrentThemeName = "Pastel Pink"
 }
 
@@ -133,7 +132,7 @@ function ThemeEditor:SaveThemeAs(themeName)
             BackgroundImage = self.BackgroundImage,
             BackgroundImageTransparency = self.BackgroundImageTransparency
         }
-        local themeData = e:JSONEncode(saveData)
+        local themeData = HttpService:JSONEncode(saveData)
         local filePath = self.ConfigFolder .. "/" .. themeName .. ".json"
         writefile(filePath, themeData)
     end)
@@ -166,7 +165,7 @@ function ThemeEditor:LoadThemeByName(themeName)
     
     local success = pcall(function()
         local themeData = readfile(filePath)
-        local loadedData = e:JSONDecode(themeData)
+        local loadedData = HttpService:JSONDecode(themeData)
         
         if loadedData then
             -- Load theme colors
@@ -251,7 +250,7 @@ function ThemeEditor:MigrateOldConfig()
     
     local success = pcall(function()
         local themeData = readfile(self.ConfigFile)
-        local loadedData = e:JSONDecode(themeData)
+        local loadedData = HttpService:JSONDecode(themeData)
         
         if loadedData then
             -- Migrate sang theme "MyTheme"
@@ -289,7 +288,7 @@ function ThemeEditor:LoadTheme()
     
     local success = pcall(function()
         local themeData = readfile(self.ConfigFile)
-        local loadedData = e:JSONDecode(themeData)
+        local loadedData = HttpService:JSONDecode(themeData)
         
         if loadedData then
             -- Load theme colors
@@ -1000,6 +999,11 @@ end
 
 -- ==================== INIT MODULE ====================
 function Module:Init()
+    -- Set ConfigFile với PlayerName
+    if PlayerLocal and PlayerLocal.Name then
+        ThemeEditor.ConfigFile = "AnyaHub_ThemeConfig_" .. PlayerLocal.Name .. ".txt"
+    end
+    
     -- Tự động migrate config cũ và load theme trước khi tạo tab
     task.spawn(function()
         task.wait(0.3)
