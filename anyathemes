@@ -1,5 +1,5 @@
 -- ==================== THEME EDITOR MODULE ====================
--- Loaded from GitHub: Custom theme creation and management system
+-- Loaded from GitHub: Custom theme creation and management systemccccccccccccc
 -- Requirements: WindUI, global variables from main script
 -- ==============================================================
 
@@ -272,18 +272,42 @@ end
 function ThemeEditor:RefreshThemeDropdown()
     local themes = self:GetThemeList()
     
+    -- Try updating with SetValues method
     if self.DropdownRefs.ThemeList then
-        if self.DropdownRefs.ThemeList.SetValues then
-            pcall(function()
+        local success = pcall(function()
+            if self.DropdownRefs.ThemeList.SetValues then
                 self.DropdownRefs.ThemeList:SetValues(themes)
+            elseif self.DropdownRefs.ThemeList.UpdateValues then
+                self.DropdownRefs.ThemeList:UpdateValues(themes)
+            elseif self.DropdownRefs.ThemeList.Refresh then
+                self.DropdownRefs.ThemeList:Refresh(themes)
+            elseif self.DropdownRefs.ThemeList.SetOptions then
+                self.DropdownRefs.ThemeList:SetOptions(themes)
+            end
+        end)
+        if not success then
+            -- Fallback: Try setting Values property directly
+            pcall(function()
+                self.DropdownRefs.ThemeList.Values = themes
             end)
         end
     end
     
     if self.autoloadDropdownRef then
-        if self.autoloadDropdownRef.SetValues then
-            pcall(function()
+        local success = pcall(function()
+            if self.autoloadDropdownRef.SetValues then
                 self.autoloadDropdownRef:SetValues(themes)
+            elseif self.autoloadDropdownRef.UpdateValues then
+                self.autoloadDropdownRef:UpdateValues(themes)
+            elseif self.autoloadDropdownRef.Refresh then
+                self.autoloadDropdownRef:Refresh(themes)
+            elseif self.autoloadDropdownRef.SetOptions then
+                self.autoloadDropdownRef:SetOptions(themes)
+            end
+        end)
+        if not success then
+            pcall(function()
+                self.autoloadDropdownRef.Values = themes
             end)
         end
     end
