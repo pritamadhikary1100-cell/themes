@@ -1,5 +1,5 @@
 -- ==================== THEME EDITOR MODULE ====================
--- Loaded from GitHub: Custom theme creation and management system
+-- Loaded from GitHub: Custom theme creation and management systemd
 -- Requirements: WindUI, global variables from main script
 -- ==============================================================
 
@@ -17,45 +17,54 @@ local ConfigSystem = _G.ConfigSystem
 
 -- ==================== THEME EDITOR GLOBALS ====================
 local ThemeEditor = {
-    -- Theme mặc định
+    -- Theme mặc định (Pastel Pink từ anya.lua)
     CurrentTheme = {
-        Name = "Theme Tùy Chỉnh",
-        Accent = Color3.fromHex("#18181b"),
-        Background = Color3.fromHex("#101010"),
+        Name = "Pastel Pink",
+        Accent = Color3.fromHex("#FFB5D8"),  -- hồng pastel
+        Background = Color3.fromHex("#FAF0F5"),  -- trắng hồng nhạt
         BackgroundTransparency = 0,
-        Outline = Color3.fromHex("#FFFFFF"),
-        Text = Color3.fromHex("#FFFFFF"),
-        Placeholder = Color3.fromHex("#7a7a7a"),
-        Button = Color3.fromHex("#52525b"),
-        Icon = Color3.fromHex("#a1a1aa"),
-        Hover = Color3.fromHex("#FFFFFF"),
-        WindowBackground = Color3.fromHex("#101010"),
-        WindowShadow = Color3.fromHex("#000000"),
-        DialogBackground = Color3.fromHex("#101010"),
+        Outline = Color3.fromHex("#E8A5C8"),  -- hồng pastel đậm
+        Text = Color3.fromHex("#8B4F7D"),  -- tím đậm
+        Placeholder = Color3.fromHex("#C89FB8"),  -- hồng tím pastel
+        Button = Color3.fromHex("#F0B8D8"),  -- hồng pastel
+        Icon = Color3.fromHex("#E89DC8"),  -- hồng pastel
+        Hover = Color3.fromHex("#FFC9E5"),  -- hồng pastel sáng
+        WindowBackground = Color3.fromHex("#FAF0F5"),
+        WindowShadow = Color3.fromHex("#E8A5C8"),
+        DialogBackground = Color3.fromHex("#F5E6F0"),  -- tím pastel rất nhạt
         DialogBackgroundTransparency = 0,
-        DialogTitle = Color3.fromHex("#FFFFFF"),
-        DialogContent = Color3.fromHex("#FFFFFF"),
-        DialogIcon = Color3.fromHex("#a1a1aa"),
-        WindowTopbarButtonIcon = Color3.fromHex("#a1a1aa"),
-        WindowTopbarTitle = Color3.fromHex("#FFFFFF"),
-        WindowTopbarAuthor = Color3.fromHex("#FFFFFF"),
-        WindowTopbarIcon = Color3.fromHex("#FFFFFF"),
-        TabBackground = Color3.fromHex("#FFFFFF"),
-        TabTitle = Color3.fromHex("#FFFFFF"),
-        TabIcon = Color3.fromHex("#a1a1aa"),
-        ElementBackground = Color3.fromHex("#FFFFFF"),
-        ElementTitle = Color3.fromHex("#FFFFFF"),
-        ElementDesc = Color3.fromHex("#FFFFFF"),
-        ElementIcon = Color3.fromHex("#a1a1aa"),
-        PopupBackground = Color3.fromHex("#101010"),
+        DialogTitle = Color3.fromHex("#8B4F7D"),
+        DialogContent = Color3.fromHex("#8B4F7D"),
+        DialogIcon = Color3.fromHex("#E89DC8"),
+        WindowTopbarButtonIcon = Color3.fromHex("#E89DC8"),
+        WindowTopbarTitle = Color3.fromHex("#8B4F7D"),
+        WindowTopbarAuthor = Color3.fromHex("#8B4F7D"),
+        WindowTopbarIcon = Color3.fromHex("#8B4F7D"),
+        TabBackground = Color3.fromHex("#8B4F7D"),
+        TabTitle = Color3.fromHex("#8B4F7D"),
+        TabIcon = Color3.fromHex("#E89DC8"),
+        ElementBackground = Color3.fromHex("#8B4F7D"),
+        ElementTitle = Color3.fromHex("#8B4F7D"),
+        ElementDesc = Color3.fromHex("#8B4F7D"),
+        ElementIcon = Color3.fromHex("#E89DC8"),
+        PopupBackground = Color3.fromHex("#F5E6F0"),
         PopupBackgroundTransparency = 0,
-        PopupTitle = Color3.fromHex("#FFFFFF"),
-        PopupContent = Color3.fromHex("#FFFFFF"),
-        PopupIcon = Color3.fromHex("#a1a1aa")
+        PopupTitle = Color3.fromHex("#8B4F7D"),
+        PopupContent = Color3.fromHex("#8B4F7D"),
+        PopupIcon = Color3.fromHex("#E89DC8")
     },
+    -- Background Image Settings
+    BackgroundImage = "https://i.pinimg.com/1200x/ef/6c/bc/ef6cbcc329b3e56b0346c8c4e568882d.jpg",
+    BackgroundImageTransparency = 0.5,
     -- Lưu references đến colorpickers để update sau
     ColorpickerRefs = {},
-    -- Config file
+    InputRefs = {},
+    SliderRefs = {},
+    DropdownRefs = {},
+    -- Config folder và file
+    ConfigFolder = "AnyaHub_Themes",
+    CurrentThemeName = "Default",  -- Tên theme hiện tại
+    -- Deprecated: ConfigFile cũ (để migration)
     ConfigFile = "AnyaHub_ThemeConfig_" .. c.Name .. ".txt"
 }
 
@@ -69,17 +78,70 @@ local function libNoti(msg, duration)
 end
 
 -- ==================== THEME FUNCTIONS ====================
--- Hàm lưu theme vào file
-function ThemeEditor:SaveTheme()
-    if not writefile then return false end
+-- Hàm lấy danh sách theme đã lưu
+function ThemeEditor:GetThemeList()
+    if not (isfolder and listfiles) then return {"Default"} end
+    
+    local themes = {"Default"}  -- Theme mặc định luôn có
+    
+    -- Tạo folder nếu chưa tồn tại
+    if not isfolder(self.ConfigFolder) then
+        if makefolder then
+            makefolder(self.ConfigFolder)
+        end
+        return themes
+    end
+    
+    -- Lấy danh sách file
+    local success, files = pcall(function()
+        return listfiles(self.ConfigFolder)
+    end)
+    
+    if success and files then
+        for _, filePath in ipairs(files) do
+            local fileName = filePath:match("([^/\\]+)%.json$")
+            if fileName and fileName ~= "Default" then
+                table.insert(themes, fileName)
+            end
+        end
+    end
+    
+    table.sort(themes)
+    return themes
+end
+
+-- Hàm lưu theme vào file với tên cụ thể
+function ThemeEditor:SaveThemeAs(themeName)
+    if not writefile or not themeName or themeName == "" then 
+        libNoti("❌ Vui lòng nhập tên theme!", 3)
+        return false 
+    end
+    
+    -- Tạo folder nếu chưa tồn tại
+    if not isfolder(self.ConfigFolder) then
+        if makefolder then
+            makefolder(self.ConfigFolder)
+        end
+    end
     
     local success = pcall(function()
-        local themeData = e:JSONEncode(self.CurrentTheme)
-        writefile(self.ConfigFile, themeData)
+        -- Cập nhật tên theme
+        self.CurrentTheme.Name = themeName
+        self.CurrentThemeName = themeName
+        
+        local saveData = {
+            CurrentTheme = self.CurrentTheme,
+            BackgroundImage = self.BackgroundImage,
+            BackgroundImageTransparency = self.BackgroundImageTransparency
+        }
+        local themeData = e:JSONEncode(saveData)
+        local filePath = self.ConfigFolder .. "/" .. themeName .. ".json"
+        writefile(filePath, themeData)
     end)
     
     if success then
-        libNoti("✅ Theme đã được lưu!", 3)
+        libNoti("✅ Theme '" .. themeName .. "' đã được lưu!", 3)
+        self:RefreshThemeDropdown()
     else
         libNoti("❌ Không thể lưu theme!", 3)
     end
@@ -87,25 +149,49 @@ function ThemeEditor:SaveTheme()
     return success
 end
 
--- Hàm load theme từ file
-function ThemeEditor:LoadTheme()
-    if not (isfile and readfile and isfile(self.ConfigFile)) then
+-- Hàm load theme từ tên
+function ThemeEditor:LoadThemeByName(themeName)
+    if themeName == "Default" then
+        self:ResetToDefault()
+        return true
+    end
+    
+    if not (readfile and isfile) then return false end
+    
+    local filePath = self.ConfigFolder .. "/" .. themeName .. ".json"
+    
+    if not isfile(filePath) then
+        libNoti("❌ Theme không tồn tại!", 3)
         return false
     end
     
     local success = pcall(function()
-        local themeData = readfile(self.ConfigFile)
-        local loadedTheme = e:JSONDecode(themeData)
+        local themeData = readfile(filePath)
+        local loadedData = e:JSONDecode(themeData)
         
-        if loadedTheme then
-            self.CurrentTheme = loadedTheme
+        if loadedData then
+            -- Load theme colors
+            if loadedData.CurrentTheme then
+                self.CurrentTheme = loadedData.CurrentTheme
+            end
+            
+            -- Load background settings
+            if loadedData.BackgroundImage then
+                self.BackgroundImage = loadedData.BackgroundImage
+            end
+            if loadedData.BackgroundImageTransparency ~= nil then
+                self.BackgroundImageTransparency = loadedData.BackgroundImageTransparency
+            end
+            
+            self.CurrentThemeName = themeName
             self:ApplyTheme()
-            self:UpdateColorpickerUI()
+            self:ApplyBackgroundImage()
+            self:UpdateAllUI()
         end
     end)
     
     if success then
-        libNoti("✅ Theme đã được tải!", 3)
+        libNoti("✅ Theme '" .. themeName .. "' đã được tải!", 3)
     else
         libNoti("❌ Không thể tải theme!", 3)
     end
@@ -113,47 +199,170 @@ function ThemeEditor:LoadTheme()
     return success
 end
 
--- Hàm áp dụng theme hiện tại
-function ThemeEditor:ApplyTheme()
+-- Hàm xóa theme
+function ThemeEditor:DeleteTheme(themeName)
+    if themeName == "Default" then
+        libNoti("❌ Không thể xóa theme mặc định!", 3)
+        return false
+    end
+    
+    if not delfile then return false end
+    
+    local filePath = self.ConfigFolder .. "/" .. themeName .. ".json"
+    
     local success = pcall(function()
-        WindUI:AddTheme(self.CurrentTheme)
-        WindUI:SetTheme(self.CurrentTheme.Name)
+        if isfile(filePath) then
+            delfile(filePath)
+        end
+    end)
+    
+    if success then
+        libNoti("✅ Theme '" .. themeName .. "' đã được xóa!", 3)
+        self:RefreshThemeDropdown()
+        
+        -- Nếu đang dùng theme bị xóa, chuyển về Default
+        if self.CurrentThemeName == themeName then
+            self:ResetToDefault()
+        end
+    else
+        libNoti("❌ Không thể xóa theme!", 3)
+    end
+    
+    return success
+end
+
+-- Hàm refresh dropdown
+function ThemeEditor:RefreshThemeDropdown()
+    local themes = self:GetThemeList()
+    
+    if self.DropdownRefs.ThemeList and self.DropdownRefs.ThemeList.SetValues then
+        pcall(function()
+            self.DropdownRefs.ThemeList:SetValues(themes)
+        end)
+    end
+    
+    return themes
+end
+
+-- Hàm load theme từ file (riêng biệt, không qua ConfigSystem)
+function ThemeEditor:LoadTheme()
+    if not (isfile and readfile and isfile(self.ConfigFile)) then
+        return false
+    end
+    
+    local success = pcall(function()
+        local themeData = readfile(self.ConfigFile)
+        local loadedData = e:JSONDecode(themeData)
+        
+        if loadedData then
+            -- Load theme colors
+            if loadedData.CurrentTheme then
+                self.CurrentTheme = loadedData.CurrentTheme
+            end
+            
+            -- Load background settings
+            if loadedData.BackgroundImage then
+                self.BackgroundImage = loadedData.BackgroundImage
+            end
+            if loadedData.BackgroundImageTransparency then
+                self.BackgroundImageTransparency = loadedData.BackgroundImageTransparency
+            end
+            
+            self:ApplyTheme()
+            self:ApplyBackgroundImage()
+            self:UpdateAllUI()
+        end
+    end)
+    
+    if success then
+       áp dụng background image
+function ThemeEditor:ApplyBackgroundImage()
+    local success = pcall(function()
+        if Window and Window.SetBackgroundImage then
+            Window:SetBackgroundImage(self.BackgroundImage)
+            Window:SetBackgroundImageTransparency(self.BackgroundImageTransparency)
+        end
     end)
     
     return success
 end
 
--- Hàm reset về theme mặc định
+-- Hàm reset về theme Pastel Pink (theme mặc định của anya.lua)
 function ThemeEditor:ResetToDefault()
     self.CurrentTheme = {
-        Name = "Theme Tùy Chỉnh",
-        Accent = Color3.fromHex("#18181b"),
-        Background = Color3.fromHex("#101010"),
+        Name = "Pastel Pink",
+        Accent = Color3.fromHex("#FFB5D8"),  -- hồng pastel
+        Background = Color3.fromHex("#FAF0F5"),  -- trắng hồng nhạt
         BackgroundTransparency = 0,
-        Outline = Color3.fromHex("#FFFFFF"),
-        Text = Color3.fromHex("#FFFFFF"),
-        Placeholder = Color3.fromHex("#7a7a7a"),
-        Button = Color3.fromHex("#52525b"),
-        Icon = Color3.fromHex("#a1a1aa"),
-        Hover = Color3.fromHex("#FFFFFF"),
-        WindowBackground = Color3.fromHex("#101010"),
-        WindowShadow = Color3.fromHex("#000000"),
-        DialogBackground = Color3.fromHex("#101010"),
+        Outline = Color3.fromHex("#E8A5C8"),  -- hồng pastel đậm
+        Text = Color3.fromHex("#8B4F7D"),  -- tím đậm
+        Placeholder = Color3.fromHex("#C89FB8"),  -- hồng tím pastel
+        Button = Color3.fromHex("#F0B8D8"),  -- hồng pastel
+        Icon = Color3.fromHex("#E89DC8"),  -- hồng pastel
+        Hover = Color3.fromHex("#FFC9E5"),  -- hồng pastel sáng
+        WindowBackground = Color3.fromHex("#FAF0F5"),
+        WindowShadow = Color3.fromHex("#E8A5C8"),
+        DialogBackground = Color3.fromHex("#F5E6F0"),
         DialogBackgroundTransparency = 0,
-        DialogTitle = Color3.fromHex("#FFFFFF"),
-        DialogContent = Color3.fromHex("#FFFFFF"),
-        DialogIcon = Color3.fromHex("#a1a1aa"),
-        WindowTopbarButtonIcon = Color3.fromHex("#a1a1aa"),
-        WindowTopbarTitle = Color3.fromHex("#FFFFFF"),
-        WindowTopbarAuthor = Color3.fromHex("#FFFFFF"),
-        WindowTopbarIcon = Color3.fromHex("#FFFFFF"),
-        TabBackground = Color3.fromHex("#FFFFFF"),
-        TabTitle = Color3.fromHex("#FFFFFF"),
-        TabIcon = Color3.fromHex("#a1a1aa"),
-        ElementBackground = Color3.fromHex("#FFFFFF"),
-        ElementTitle = Color3.fromHex("#FFFFFF"),
-        ElementDesc = Color3.fromHex("#FFFFFF"),
-        ElementIcon = Color3.fromHex("#a1a1aa"),
+        DialogTitle = Color3.fromHex("#8B4F7D"),
+        DialogContent = Color3.fromHex("#8B4F7D"),
+        DialogIcon = Color3.fromHex("#E89DC8"),
+        WindowTopbarButtonIcon = Color3.fromHex("#E89DC8"),
+        WindowTopbarTitle = Color3.fromHex("#8B4F7D"),
+        WindowTopbarAuthor = Color3.fromHex("#8B4F7D"),
+        WindowTopbarIcon = Color3.fromHex("#8B4F7D"),
+        TabBackground = Color3.fromHex("#8B4F7D"),
+        TabTitle = Color3.fromHex("#8B4F7D"),
+        TabIcon = Color3.fromHex("#E89DC8"),
+        ElementBackground = Color3.fromHex("#8B4F7D"),
+        ElementTitle = Color3.fromHex("#8B4F7D"),
+        ElementDesc = Color3.fromHex("#8B4F7D"),
+        ElementIcon = Color3.fromHex("#E89DC8"),
+        PopupBackground = Color3.fromHex("#F5E6F0"),
+        PopupBackgroundTransparency = 0,
+        PopupTitle = Color3.fromHex("#8B4F7D"),
+        PopupContent = Color3.fromHex("#8B4F7D"),
+        PopupIcon = Color3.fromHex("#E89DC8")
+    }
+    
+    self.BackgroundImage = "rbxassetid://127375677813832"
+    self.BackgroundImageTransparency = 0.5
+    
+    self:ApplyTheme()
+    self:ApplyBackgroundImage()
+    self:UpdateAllUI()
+    libNoti("✅ Đã reset về theme Pastel Pink!", 3)
+end
+
+-- Hàm cập nhật tất cả UI elements sau khi load
+function ThemeEditor:UpdateAllUI()
+    -- Update colorpickers
+    for key, colorpicker in pairs(self.ColorpickerRefs) do
+        if colorpicker and colorpicker.SetValue then
+            pcall(function()
+                colorpicker:SetValue(self.CurrentTheme[key])
+            end)
+        end
+    end
+    
+    -- Update inputs
+    for key, input in pairs(self.InputRefs) do
+        if input and input.SetValue then
+            pcall(function()
+                if key == "BackgroundImage" then
+                    input:SetValue(self.BackgroundImage)
+                end
+            end)
+        end
+    end
+    
+    -- Update sliders
+    for key, slider in pairs(self.SliderRefs) do
+        if slider and slider.SetValue then
+            pcall(function()
+                if key == "BackgroundImageTransparency" then
+                    slider:SetValue(self.BackgroundImageTransparency)
+                end
         PopupBackground = Color3.fromHex("#101010"),
         PopupBackgroundTransparency = 0,
         PopupTitle = Color3.fromHex("#FFFFFF"),
@@ -295,7 +504,118 @@ local function createThemeEditorTab()
     
     -- Colorpicker cho Hover
     local hoverColorpicker = ThemeTab:Colorpicker({
-        Title = "Màu Hover",
+        Title = "Màu Hover",Background Image" })
+    
+    -- Input cho Background Image Asset ID
+    local bgImageInput = ThemeTab:Input({
+        Title = "Background Image Asset ID",
+        Description = "Nhập Asset ID của hình nền (rbxassetid://...)",
+        Placeholder = "rbxassetid://127375677813832",
+        Value = ThemeEditor.BackgroundImage,
+        Callback = function(value)
+            if value and value ~= "" then
+                ThemeEditor.BackgroundImage = value
+            end
+        end
+    })
+    ThemeEditor.InputRefs.BackgroundImage = bgImageInput
+    
+    -- Slider cho Background Image Transparency
+    local bgImgTransSlider = ThemeTab:Slider({
+        Title = "Độ Trong Suốt Hình Nền",
+        Description = "Điều chỉnh độ trong suốt của hình nền",
+        Step = 0.01,
+        Value = {
+            Min = 0,
+            Max = 1,
+            Default = ThemeEditor.BackgroundImageTransparency
+        },
+        Callback = function(value)
+            ThemeEditor.BackgroundImageTransparency = value
+        end
+    })
+    ThemeEditor.SliderRefs.BackgroundImageTransparency = bgImgTransSlider
+    
+    -- Button áp dụng Background Image
+    ThemeTab:Button({
+        Title = "🖼️ Áp Dụng Background Image",
+        Description = "Áp dụng hình nền mới",
+        Callback = function()
+            if ThemeEditor:ApplyBackgroundImage() then
+                libNoti("✅ Hình nền đã được áp dụng!", 2)
+            else
+                libNoti("❌ Không thể áp dụng hình nền!", 3)
+            end
+        end
+    })
+    
+    -- Preset Background Images
+    ThemeTab:Paragraph({
+        Title = "📸 Background Presets",
+        Description = "Nhấn vào để áp dụng hình nền có sẵn"
+    })
+    
+    ThemeTab:Button({
+        Title = "🌸 Cherry Blossom (Default)",
+        Description = "Hình nền hoa anh đào mặc định",
+        Callback = function()
+            ThemeEditor.BackgroundImage = "rbxassetid://127375677813832"
+            ThemeEditor.BackgroundImageTransparency = 0.5
+            ThemeEditor:ApplyBackgroundImage()
+            ThemeEditor:UpdateAllUI()
+            libNoti("✅ Đã áp dụng hình nền Cherry Blossom!", 2)
+        end
+    })
+    
+    ThemeTab:Button({
+        Title = "🌌 Space Galaxy",
+        Description = "Hình nền thiên hà",
+        Callback = function()
+            ThemeEditor.BackgroundImage = "rbxassetid://6072933674"
+            ThemeEditor.BackgroundImageTransparency = 0.3
+            ThemeEditor:ApplyBackgroundImage()
+            ThemeEditor:UpdateAllUI()
+            libNoti("✅ Đã áp dụng hình nền Galaxy!", 2)
+        end
+    })
+    
+    ThemeTab:Button({
+        Title = "🌊 Ocean Waves",
+        Description = "Hình nền sóng biển",
+        Callback = function()
+            ThemeEditor.BackgroundImage = "rbxassetid://6072952009"
+            ThemeEditor.BackgroundImageTransparency = 0.4
+            ThemeEditor:ApplyBackgroundImage()
+            ThemeEditor:UpdateAllUI()
+            libNoti("✅ Đã áp dụng hình nền Ocean!", 2)
+        end
+    })
+    
+    ThemeTab:Button({
+        Title = "🌲 Forest",
+        Description = "Hình nền rừng cây",
+        Callback = function()
+            ThemeEditor.BackgroundImage = "rbxassetid://6072945256"
+            ThemeEditor.BackgroundImageTransparency = 0.35
+            ThemeEditor:ApplyBackgroundImage()
+            ThemeEditor:UpdateAllUI()
+            libNoti("✅ Đã áp dụng hình nền Forest!", 2)
+        end
+    })
+    
+    ThemeTab:Button({
+        Title = "❌ Xóa Hình Nền",
+        Description = "Tắt hình nền (chỉ dùng màu)",
+        Callback = function()
+            ThemeEditor.BackgroundImage = ""
+            ThemeEditor.BackgroundImageTransparency = 1
+            ThemeEditor:ApplyBackgroundImage()
+            ThemeEditor:UpdateAllUI()
+            libNoti("✅ Đã tắt hình nền!", 2)
+        end
+    })
+    
+    ThemeTab:Divider({ Text = "
         Description = "Màu khi di chuột qua",
         Color = ThemeEditor.CurrentTheme.Hover,
         Callback = function(color)
@@ -334,14 +654,103 @@ local function createThemeEditorTab()
         end
     })
     
-    ThemeTab:Divider({ Text = "Điều Khiển" })
+    ThemeTab:Divider({ Text = "Quản Lý Theme" })
+    
+    ThemeTab:Paragraph({
+        Title = "💾 Quản Lý Theme Đã Lưu",
+        Description = "Lưu, tải và xóa các theme tùy chỉnh của bạn"
+    })
+    
+    -- Input tên theme mới
+    local themeNameInput = ThemeTab:Input({
+        Title = "Tên Theme Mới",
+        Description = "Nhập tên cho theme hiện tại",
+        Placeholder = "MyCustomTheme",
+        Value = ThemeEditor.CurrentThemeName,
+        Callback = function(value)
+            -- Chỉ cập nhật giá trị, không lưu ngay
+        end
+    })
+    ThemeEditor.InputRefs.ThemeName = themeNameInput
+    
+    -- Dropdown chọn theme đã lưu
+    local themeDropdown = ThemeTab:Dropdown({
+        Title = "📋 Chọn Theme Đã Lưu",
+        Description = "Chọn theme để tải hoặc xóa",
+        Values = ThemeEditor:GetThemeList(),
+        Multi = false,
+        Callback = function(selected)
+            -- Không load ngay, chỉ cập nhật selection
+        end
+    })
+    ThemeEditor.DropdownRefs.ThemeList = themeDropdown
+    
+    -- Button Lưu Theme Mới
+    ThemeTab:Button({
+        Title = "💾 Lưu Theme Mới",
+        Description = "Lưu theme hiện tại với tên đã nhập",
+        Callback = function()
+            local themeName = themeNameInput.Value or ""
+            if themeName == "" then
+                libNoti("❌ Vui lòng nhập tên theme!", 3)
+                return
+            end
+            ThemeEditor:SaveThemeAs(themeName)
+        end
+    })
+    
+    -- Button Load Theme Đã Chọn
+    ThemeTab:Button({
+        Title = "📂 Tải Theme Đã Chọn",
+        Description = "Tải theme từ dropdown",
+        Callback = function()
+            local selected = themeDropdown.Value
+            if selected and #selected > 0 then
+                local themeName = selected[1] or selected
+                ThemeEditor:LoadThemeByName(themeName)
+            else
+                libNoti("❌ Vui lòng chọn theme!", 3)
+            end
+        end
+    })
+    
+    -- Button Xóa Theme Đã Chọn
+    ThemeTab:Button({
+        Title = "🗑️ Xóa Theme Đã Chọn",
+        Description = "Xóa theme đã chọn (không xóa được Default)",
+        Callback = function()
+            local selected = themeDropdown.Value
+            if selected and #selected > 0 then
+                local themeName = selected[1] or selected
+                if themeName == "Default" then
+                    libNoti("❌ Không thể xóa theme Default!", 3)
+                    return
+                end
+                ThemeEditor:DeleteTheme(themeName)
+            else
+                libNoti("❌ Vui lòng chọn theme!", 3)
+            end
+        end
+    })
+    
+    -- Button Refresh Danh Sách
+    ThemeTab:Button({
+        Title = "🔄 Làm Mới Danh Sách",
+        Description = "Cập nhật danh sách theme",
+        Callback = function()
+            local themes = ThemeEditor:RefreshThemeDropdown()
+            libNoti("✅ Tìm thấy " .. #themes .. " theme!", 2)
+        end
+    })
+    
+    ThemeTab:Divider({ Text = "Điều Khiển Nhanh" })
     
     -- Button Áp Dụng
     ThemeTab:Button({
-        Title = "✨ Áp Dụng Theme",
-        Description = "Áp dụng theme hiện tại",
+        Title = "✨ Áp Dụng Theme Hiện Tại",
+        Description = "Áp dụng màu sắc và hình nền hiện tại",
         Callback = function()
-            if ThemeEditor:ApplyTheme() then
+            if ThemeEditor:ApplyTheme() and ThemeEditor:ApplyBackgroundImage() then
                 libNoti("✅ Theme đã được áp dụng!", 2)
             else
                 libNoti("❌ Không thể áp dụng theme!", 3)
@@ -349,30 +758,10 @@ local function createThemeEditorTab()
         end
     })
     
-    -- Button Lưu
-    ThemeTab:Button({
-        Title = "💾 Lưu Theme",
-        Description = "Lưu theme hiện tại vào file",
-        Callback = function()
-            ThemeEditor:SaveTheme()
-        end
-    })
-    
-    -- Button Load
-    ThemeTab:Button({
-        Title = "📂 Tải Theme Đã Lưu",
-        Description = "Tải theme từ file đã lưu",
-        Callback = function()
-            if ThemeEditor:LoadTheme() then
-                libNoti("✅ Yêu cầu khởi động lại script để áp dụng đầy đủ!", 5)
-            end
-        end
-    })
-    
     -- Button Reset
     ThemeTab:Button({
-        Title = "🔄 Reset Về Mặc Định",
-        Description = "Đặt lại theme về mặc định",
+        Title = "🔄 Reset Về Pastel Pink",
+        Description = "Đặt lại theme về Pastel Pink (theme mặc định)",
         Callback = function()
             ThemeEditor:ResetToDefault()
         end
@@ -426,7 +815,7 @@ local function createThemeEditorTab()
                 PopupIcon = Color3.fromHex("#9ca3af")
             }
             ThemeEditor:ApplyTheme()
-            ThemeEditor:UpdateColorpickerUI()
+            ThemeEditor:UpdateAllUI()
             libNoti("✅ Đã áp dụng Dark Mode!", 2)
         end
     })
@@ -472,7 +861,7 @@ local function createThemeEditorTab()
                 PopupIcon = Color3.fromHex("#495057")
             }
             ThemeEditor:ApplyTheme()
-            ThemeEditor:UpdateColorpickerUI()
+            ThemeEditor:UpdateAllUI()
             libNoti("✅ Đã áp dụng Light Mode!", 2)
         end
     })
@@ -518,7 +907,7 @@ local function createThemeEditorTab()
                 PopupIcon = Color3.fromHex("#ff00ff")
             }
             ThemeEditor:ApplyTheme()
-            ThemeEditor:UpdateColorpickerUI()
+            ThemeEditor:UpdateAllUI()
             libNoti("✅ Đã áp dụng Cyberpunk!", 2)
         end
     })
@@ -564,7 +953,7 @@ local function createThemeEditorTab()
                 PopupIcon = Color3.fromHex("#34d399")
             }
             ThemeEditor:ApplyTheme()
-            ThemeEditor:UpdateColorpickerUI()
+            ThemeEditor:UpdateAllUI()
             libNoti("✅ Đã áp dụng Forest!", 2)
         end
     })
@@ -610,7 +999,7 @@ local function createThemeEditorTab()
                 PopupIcon = Color3.fromHex("#38bdf8")
             }
             ThemeEditor:ApplyTheme()
-            ThemeEditor:UpdateColorpickerUI()
+            ThemeEditor:UpdateAllUI()
             libNoti("✅ Đã áp dụng Ocean!", 2)
         end
     })
@@ -618,13 +1007,27 @@ local function createThemeEditorTab()
     -- Load theme khi khởi động tab
     task.spawn(function()
         task.wait(0.5)
-        ThemeEditor:LoadTheme()
+        -- Tự động migrate config cũ nếu có
+        ThemeEditor:MigrateOldConfig()
+        -- Refresh danh sách theme
+        ThemeEditor:RefreshThemeDropdown()
     end)
 end
 
 -- ==================== INIT MODULE ====================
 function Module:Init()
+    -- Tự động migrate config cũ và load theme trước khi tạo tab
+    task.spawn(function()
+        task.wait(0.3)
+        -- Migrate config cũ (nếu có)
+        ThemeEditor:MigrateOldConfig()
+    end)
+    
+    -- Tạo tab UI
     createThemeEditorTab()
+end
+
+return Module
     
     -- Load theme khi khởi động
     ThemeEditor:LoadTheme()
