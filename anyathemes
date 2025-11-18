@@ -1,5 +1,5 @@
 -- ==================== THEME EDITOR MODULE ====================
--- Loaded from GitHub: Custom theme creation and management system
+-- Loaded from GitHub: Custom theme creation and management systemddddddd
 -- Requirements: WindUI, global variables from main script
 -- ==============================================================
 
@@ -605,10 +605,27 @@ end
 
 -- Hàm áp dụng theme hiện tại
 function ThemeEditor:ApplyTheme()
-    local success = pcall(function()
+    local success, errorMsg = pcall(function()
+        print("[ThemeEditor] Applying theme: " .. tostring(self.CurrentTheme.Name))
+        
+        -- Xóa theme cũ nếu tồn tại
+        pcall(function()
+            WindUI:RemoveTheme(self.CurrentTheme.Name)
+        end)
+        
+        -- Thêm theme mới
         WindUI:AddTheme(self.CurrentTheme)
+        print("[ThemeEditor] Theme added")
+        
+        -- Đợi một chút rồi apply
+        task.wait(0.05)
         WindUI:SetTheme(self.CurrentTheme.Name)
+        print("[ThemeEditor] Theme set successfully")
     end)
+    
+    if not success then
+        print("[ThemeEditor] ApplyTheme error: " .. tostring(errorMsg))
+    end
     
     return success
 end
@@ -739,7 +756,10 @@ local function createThemeEditorTab()
         Title = "Accent",
         Description = "Màu nhấn mạnh chính",
         Color = ThemeEditor.CurrentTheme.Accent,
-        Callback = function(color) ThemeEditor.CurrentTheme.Accent = color end
+        Callback = function(color) 
+            ThemeEditor.CurrentTheme.Accent = color 
+            ThemeEditor:ApplyTheme()
+        end
     })
     
     -- Background
@@ -747,7 +767,10 @@ local function createThemeEditorTab()
         Title = "Background",
         Description = "Màu nền chính",
         Color = ThemeEditor.CurrentTheme.Background,
-        Callback = function(color) ThemeEditor.CurrentTheme.Background = color end
+        Callback = function(color) 
+            ThemeEditor.CurrentTheme.Background = color 
+            ThemeEditor:ApplyTheme()
+        end
     })
     
     -- Outline
@@ -755,7 +778,10 @@ local function createThemeEditorTab()
         Title = "Outline",
         Description = "Màu viền",
         Color = ThemeEditor.CurrentTheme.Outline,
-        Callback = function(color) ThemeEditor.CurrentTheme.Outline = color end
+        Callback = function(color) 
+            ThemeEditor.CurrentTheme.Outline = color 
+            ThemeEditor:ApplyTheme()
+        end
     })
     
     -- Text
@@ -763,7 +789,10 @@ local function createThemeEditorTab()
         Title = "Text",
         Description = "Màu chữ chính",
         Color = ThemeEditor.CurrentTheme.Text,
-        Callback = function(color) ThemeEditor.CurrentTheme.Text = color end
+        Callback = function(color) 
+            ThemeEditor.CurrentTheme.Text = color 
+            ThemeEditor:ApplyTheme()
+        end
     })
     
     -- Placeholder
@@ -771,7 +800,10 @@ local function createThemeEditorTab()
         Title = "Placeholder",
         Description = "Màu chữ placeholder",
         Color = ThemeEditor.CurrentTheme.Placeholder,
-        Callback = function(color) ThemeEditor.CurrentTheme.Placeholder = color end
+        Callback = function(color) 
+            ThemeEditor.CurrentTheme.Placeholder = color 
+            ThemeEditor:ApplyTheme()
+        end
     })
     
     -- Button
@@ -779,7 +811,10 @@ local function createThemeEditorTab()
         Title = "Button",
         Description = "Màu nút bấm",
         Color = ThemeEditor.CurrentTheme.Button,
-        Callback = function(color) ThemeEditor.CurrentTheme.Button = color end
+        Callback = function(color) 
+            ThemeEditor.CurrentTheme.Button = color 
+            ThemeEditor:ApplyTheme()
+        end
     })
     
     -- Icon
@@ -787,7 +822,10 @@ local function createThemeEditorTab()
         Title = "Icon",
         Description = "Màu icon",
         Color = ThemeEditor.CurrentTheme.Icon,
-        Callback = function(color) ThemeEditor.CurrentTheme.Icon = color end
+        Callback = function(color) 
+            ThemeEditor.CurrentTheme.Icon = color 
+            ThemeEditor:ApplyTheme()
+        end
     })
     
     -- Hover
@@ -795,7 +833,10 @@ local function createThemeEditorTab()
         Title = "Hover",
         Description = "Màu khi hover",
         Color = ThemeEditor.CurrentTheme.Hover,
-        Callback = function(color) ThemeEditor.CurrentTheme.Hover = color end
+        Callback = function(color) 
+            ThemeEditor.CurrentTheme.Hover = color 
+            ThemeEditor:ApplyTheme()
+        end
     })
     
     ThemeTab:Divider({ Text = "🪟 Window" })
@@ -805,7 +846,7 @@ local function createThemeEditorTab()
         Title = "Window Background",
         Description = "Màu nền cửa sổ",
         Color = ThemeEditor.CurrentTheme.WindowBackground,
-        Callback = function(color) ThemeEditor.CurrentTheme.WindowBackground = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.WindowBackground = color; ThemeEditor:ApplyTheme() end
     })
     
     -- WindowShadow
@@ -813,7 +854,7 @@ local function createThemeEditorTab()
         Title = "Window Shadow",
         Description = "Màu bóng đổ cửa sổ",
         Color = ThemeEditor.CurrentTheme.WindowShadow,
-        Callback = function(color) ThemeEditor.CurrentTheme.WindowShadow = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.WindowShadow = color; ThemeEditor:ApplyTheme() end
     })
     
     -- WindowTopbarButtonIcon
@@ -821,7 +862,7 @@ local function createThemeEditorTab()
         Title = "Window Topbar Button Icon",
         Description = "Màu icon nút trên thanh topbar",
         Color = ThemeEditor.CurrentTheme.WindowTopbarButtonIcon,
-        Callback = function(color) ThemeEditor.CurrentTheme.WindowTopbarButtonIcon = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.WindowTopbarButtonIcon = color; ThemeEditor:ApplyTheme() end
     })
     
     -- WindowTopbarTitle
@@ -829,7 +870,7 @@ local function createThemeEditorTab()
         Title = "Window Topbar Title",
         Description = "Màu tiêu đề topbar",
         Color = ThemeEditor.CurrentTheme.WindowTopbarTitle,
-        Callback = function(color) ThemeEditor.CurrentTheme.WindowTopbarTitle = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.WindowTopbarTitle = color; ThemeEditor:ApplyTheme() end
     })
     
     -- WindowTopbarAuthor
@@ -837,7 +878,7 @@ local function createThemeEditorTab()
         Title = "Window Topbar Author",
         Description = "Màu tên tác giả topbar",
         Color = ThemeEditor.CurrentTheme.WindowTopbarAuthor,
-        Callback = function(color) ThemeEditor.CurrentTheme.WindowTopbarAuthor = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.WindowTopbarAuthor = color; ThemeEditor:ApplyTheme() end
     })
     
     -- WindowTopbarIcon
@@ -845,7 +886,7 @@ local function createThemeEditorTab()
         Title = "Window Topbar Icon",
         Description = "Màu icon topbar",
         Color = ThemeEditor.CurrentTheme.WindowTopbarIcon,
-        Callback = function(color) ThemeEditor.CurrentTheme.WindowTopbarIcon = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.WindowTopbarIcon = color; ThemeEditor:ApplyTheme() end
     })
     
     ThemeTab:Divider({ Text = "💬 Dialog" })
@@ -855,7 +896,7 @@ local function createThemeEditorTab()
         Title = "Dialog Background",
         Description = "Màu nền hộp thoại",
         Color = ThemeEditor.CurrentTheme.DialogBackground,
-        Callback = function(color) ThemeEditor.CurrentTheme.DialogBackground = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.DialogBackground = color; ThemeEditor:ApplyTheme() end
     })
     
     -- DialogTitle
@@ -863,7 +904,7 @@ local function createThemeEditorTab()
         Title = "Dialog Title",
         Description = "Màu tiêu đề dialog",
         Color = ThemeEditor.CurrentTheme.DialogTitle,
-        Callback = function(color) ThemeEditor.CurrentTheme.DialogTitle = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.DialogTitle = color; ThemeEditor:ApplyTheme() end
     })
     
     -- DialogContent
@@ -871,7 +912,7 @@ local function createThemeEditorTab()
         Title = "Dialog Content",
         Description = "Màu nội dung dialog",
         Color = ThemeEditor.CurrentTheme.DialogContent,
-        Callback = function(color) ThemeEditor.CurrentTheme.DialogContent = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.DialogContent = color; ThemeEditor:ApplyTheme() end
     })
     
     -- DialogIcon
@@ -879,7 +920,7 @@ local function createThemeEditorTab()
         Title = "Dialog Icon",
         Description = "Màu icon dialog",
         Color = ThemeEditor.CurrentTheme.DialogIcon,
-        Callback = function(color) ThemeEditor.CurrentTheme.DialogIcon = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.DialogIcon = color; ThemeEditor:ApplyTheme() end
     })
     
     ThemeTab:Divider({ Text = "📑 Tab" })
@@ -889,7 +930,7 @@ local function createThemeEditorTab()
         Title = "Tab Background",
         Description = "Màu nền tab",
         Color = ThemeEditor.CurrentTheme.TabBackground,
-        Callback = function(color) ThemeEditor.CurrentTheme.TabBackground = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.TabBackground = color; ThemeEditor:ApplyTheme() end
     })
     
     -- TabTitle
@@ -897,7 +938,7 @@ local function createThemeEditorTab()
         Title = "Tab Title",
         Description = "Màu tiêu đề tab",
         Color = ThemeEditor.CurrentTheme.TabTitle,
-        Callback = function(color) ThemeEditor.CurrentTheme.TabTitle = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.TabTitle = color; ThemeEditor:ApplyTheme() end
     })
     
     -- TabIcon
@@ -905,7 +946,7 @@ local function createThemeEditorTab()
         Title = "Tab Icon",
         Description = "Màu icon tab",
         Color = ThemeEditor.CurrentTheme.TabIcon,
-        Callback = function(color) ThemeEditor.CurrentTheme.TabIcon = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.TabIcon = color; ThemeEditor:ApplyTheme() end
     })
     
     ThemeTab:Divider({ Text = "🔧 Element" })
@@ -915,7 +956,7 @@ local function createThemeEditorTab()
         Title = "Element Background",
         Description = "Màu nền element",
         Color = ThemeEditor.CurrentTheme.ElementBackground,
-        Callback = function(color) ThemeEditor.CurrentTheme.ElementBackground = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.ElementBackground = color; ThemeEditor:ApplyTheme() end
     })
     
     -- ElementTitle
@@ -923,7 +964,7 @@ local function createThemeEditorTab()
         Title = "Element Title",
         Description = "Màu tiêu đề element",
         Color = ThemeEditor.CurrentTheme.ElementTitle,
-        Callback = function(color) ThemeEditor.CurrentTheme.ElementTitle = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.ElementTitle = color; ThemeEditor:ApplyTheme() end
     })
     
     -- ElementDesc
@@ -931,7 +972,7 @@ local function createThemeEditorTab()
         Title = "Element Description",
         Description = "Màu mô tả element",
         Color = ThemeEditor.CurrentTheme.ElementDesc,
-        Callback = function(color) ThemeEditor.CurrentTheme.ElementDesc = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.ElementDesc = color; ThemeEditor:ApplyTheme() end
     })
     
     -- ElementIcon
@@ -939,7 +980,7 @@ local function createThemeEditorTab()
         Title = "Element Icon",
         Description = "Màu icon element",
         Color = ThemeEditor.CurrentTheme.ElementIcon,
-        Callback = function(color) ThemeEditor.CurrentTheme.ElementIcon = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.ElementIcon = color; ThemeEditor:ApplyTheme() end
     })
     
     ThemeTab:Divider({ Text = "🔔 Popup" })
@@ -949,7 +990,7 @@ local function createThemeEditorTab()
         Title = "Popup Background",
         Description = "Màu nền popup",
         Color = ThemeEditor.CurrentTheme.PopupBackground,
-        Callback = function(color) ThemeEditor.CurrentTheme.PopupBackground = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.PopupBackground = color; ThemeEditor:ApplyTheme() end
     })
     
     -- PopupTitle
@@ -957,7 +998,7 @@ local function createThemeEditorTab()
         Title = "Popup Title",
         Description = "Màu tiêu đề popup",
         Color = ThemeEditor.CurrentTheme.PopupTitle,
-        Callback = function(color) ThemeEditor.CurrentTheme.PopupTitle = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.PopupTitle = color; ThemeEditor:ApplyTheme() end
     })
     
     -- PopupContent
@@ -965,7 +1006,7 @@ local function createThemeEditorTab()
         Title = "Popup Content",
         Description = "Màu nội dung popup",
         Color = ThemeEditor.CurrentTheme.PopupContent,
-        Callback = function(color) ThemeEditor.CurrentTheme.PopupContent = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.PopupContent = color; ThemeEditor:ApplyTheme() end
     })
     
     -- PopupIcon
@@ -973,7 +1014,7 @@ local function createThemeEditorTab()
         Title = "Popup Icon",
         Description = "Màu icon popup",
         Color = ThemeEditor.CurrentTheme.PopupIcon,
-        Callback = function(color) ThemeEditor.CurrentTheme.PopupIcon = color end
+        Callback = function(color) ThemeEditor.CurrentTheme.PopupIcon = color; ThemeEditor:ApplyTheme() end
     })
     
     ThemeTab:Divider({ Text = "⚪ Độ Trong Suốt" })
