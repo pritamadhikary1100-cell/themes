@@ -1,6 +1,6 @@
 -- ==================== THEME EDITOR MODULE ====================
 -- Loaded from GitHub: Custom theme creation and management system
--- Requirements: WindUI, global variables from main scriptssssss
+-- Requirements: WindUI, global variables from main script
 -- ==============================================================
 
 local Module = {}
@@ -1211,8 +1211,21 @@ function Module:Init()
         ThemeEditor:MigrateOldConfig()
     end)
     
-    -- ✅ Theme already loaded in anya.lua before Window creation
-    -- No need to load theme here anymore
+    -- ✅ CHECK AND LOAD AUTOLOAD THEME (Override default Pastel Pink if exists)
+    local autoloadFile = ThemeEditor.ConfigFolder .. "/_autoload.txt"
+    
+    if isfile and isfile(autoloadFile) then
+        local success, themeToLoad = pcall(function()
+            return readfile(autoloadFile)
+        end)
+        
+        if success and themeToLoad and themeToLoad ~= "" and themeToLoad ~= "None" and themeToLoad ~= "Default" then
+            -- Load custom theme to override default
+            pcall(function()
+                ThemeEditor:LoadThemeByName(themeToLoad)
+            end)
+        end
+    end
     
     createThemeEditorTab()
 end
